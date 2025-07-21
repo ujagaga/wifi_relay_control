@@ -6,12 +6,12 @@
 // Uncomment below line to enable OTA Update password
 //#define ENABLE_UPDATE_PASSWORD
 
-#define AP_MODE_TIMEOUT_S       10  // After this period since startup, try to connect as wifi client. This is to make sure router lease is updated.
+#define AP_MODE_TIMEOUT_S       120 // After this period since startup, try to connect as wifi client. This is to make sure router lease is updated.
 
-#define RELAY_4_PIN             5 //16  // Pin 16 is active on boot and triggeres a relay for about a second. Use pin 5 to avoid this.   
-#define RELAY_3_PIN             12 //14   
-#define RELAY_2_PIN             16 //12   
-#define RELAY_1_PIN             14 //13
+#define RELAY_4_PIN             5   // Pin 16 is default and active on boot and triggeres a relay for about a second. Use pin 5 to avoid this.   
+#define RELAY_3_PIN             12   
+#define RELAY_2_PIN             16   
+#define RELAY_1_PIN             14
 
 // 5 minutes to start the OTA update. If not, stop the service.
 #define UPDATE_TIMEOUT          (30000ul)

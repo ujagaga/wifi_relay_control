@@ -4,7 +4,6 @@ from hashlib import sha256
 import sys
 import settings
 from datetime import datetime, timezone
-import paho.mqtt.client as mqtt
 import threading
 import paho.mqtt.publish as publish
 import logging

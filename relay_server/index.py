@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 '''
-pip install flask authlib paho-mqtt flask-wtf
+pip install flask authlib paho-mqtt flask-wtf requests
 '''
-from flask import Flask, g, render_template, request, flash, redirect, make_response, Response, stream_with_context, url_for
+from flask import Flask, g, render_template, request, flash, redirect, make_response, url_for
 import time
 import json
 import sys
@@ -29,7 +29,7 @@ logging.basicConfig(handlers=[RotatingFileHandler(os.path.join(os.path.dirname(_
 logger = logging.getLogger(__name__)
 
 application = Flask(__name__, static_url_path='/static', static_folder='static')
-application.config['SECRET_KEY'] = '9OLWxND4o83j4K4iShtef'
+application.config['SECRET_KEY'] = settings.APP_SECRET_KEY
 application.config['SESSION_COOKIE_NAME'] = 'gate_ctrl'
 application.config['WTF_CSRF_SECRET_KEY'] = application.config['SECRET_KEY']
 csrf = CSRFProtect(application)
