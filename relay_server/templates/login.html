@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shtef Gate Login</title>
+    <link rel="icon" type="image/x-icon" href="static/favicon.ico">
+    <link rel="stylesheet" href="static/login.css"/>
+</head>
+<body>
+<div class="box">
+    <h1>Login</h1>
+    <a href="/authorize" class="login_btn"><img src="static/login.png" alt="Login" border="0" /></a>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <p class="red_notification">
+                {{ messages[0] }}
+            </p>
+        {% else %}
+            <p>&nbsp</p>
+        {% endif %}
+    {% endwith %}
+</div>
+</body>
+</html>

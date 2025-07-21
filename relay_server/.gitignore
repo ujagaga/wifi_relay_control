@@ -1,0 +1,6 @@
+__pycache__
+database.db
+.idea
+settings.py
+client_secret.json
+app.log*

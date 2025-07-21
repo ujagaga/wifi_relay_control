@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>Shtef Gate</title>
+  <link rel="icon" type="image/x-icon" href="static/favicon.ico">
+  <link rel="stylesheet" href="static/index.css" />
+  <link rel="stylesheet" href="static/css/fontawesome.min.css" />
+  <link rel="stylesheet" href="static/css/solid.min.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="user_picture_wrapper">
+      <img src="{{ user.picture }}" alt="User Picture" class="user_picture">
+    </div>
+
+    {% if admin %}
+    <nav class="admin_nav">
+        <a href="/manage_devices" class="nav_btn">Manage Devices</a>
+        <a href="/manage_users" class="nav_btn manage_users_btn">
+            Manage Users
+            {% if unauthorized_users|length > 0 %}
+            <span class="red_dot"></span>
+            {% endif %}
+        </a>
+    </nav>
+    <br>
+    {% endif %}
+
+    <div class="flash_message">
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          <p class="red_notification">{{ messages[0] }}</p>
+        {% endif %}
+      {% endwith %}
+    </div>
+
+    {% if connected_devices %}
+      {% for device in connected_devices %}
+        <h1>{{ device["label"] }}</h1>
+        <div class="row">
+          <a href="/unlock?id=0&name={{device['name']}}" class="big_btn">
+            <i class="fa-solid fa-lock-open"></i>
+          </a>
+          {% if device["sw_count"] > 1 %}
+          <a href="/unlock?id=1&name={{device['name']}}" class="big_btn">
+            <i class="fa-solid fa-lock"></i>
+          </a>
+          {% endif %}
+          {% if device["sw_count"] > 2 %}
+          <a href="/unlock?id=2&name={{device['name']}}" class="big_btn">
+            <i class="fa-solid fa-unlock"></i>
+          </a>
+          {% endif %}
+          {% if device["sw_count"] > 3 %}
+          <a href="/unlock?id=3&name={{device['name']}}" class="big_btn">
+            <i class="fa-solid fa-hand"></i>
+          </a>
+          {% endif %}
+        </div>
+      {% endfor %}
+    {% else %}
+      <p>There are no devices connected.</p>
+    {% endif %}
+
+  </div>
+</body>
+<script src="static/index.js"></script>
+</html>

@@ -1,0 +1,23 @@
+.box{
+    display: flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction: column;
+    margin: auto;
+    height: 90vh;
+}
+
+
+.red_notification{
+    color: red;
+    max-width: 300px;
+    overflow-wrap: break-word;
+}
+
+.login_btn img{
+    max-width: 4em;
+    max-height: 4em;
+    border: 1px solid red;
+    border-radius: 1em;
+    padding: 1em;
+}

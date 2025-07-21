@@ -1,0 +1,35 @@
+#ifndef CONFIG_H
+#define CONFIG_H
+
+// Used for both WiFI AP and OTA Update
+#define PASSWORD                "abc131313"
+// Uncomment below line to enable OTA Update password
+//#define ENABLE_UPDATE_PASSWORD
+
+#define AP_MODE_TIMEOUT_S       10  // After this period since startup, try to connect as wifi client. This is to make sure router lease is updated.
+
+#define RELAY_4_PIN             5 //16  // Pin 16 is active on boot and triggeres a relay for about a second. Use pin 5 to avoid this.   
+#define RELAY_3_PIN             12 //14   
+#define RELAY_2_PIN             16 //12   
+#define RELAY_1_PIN             14 //13
+
+// 5 minutes to start the OTA update. If not, stop the service.
+#define UPDATE_TIMEOUT          (30000ul)
+#define MQTT_SERVER             "mqtt.eclipseprojects.io"
+#define MQTT_PORT		"1883"	
+#define MQTT_USER               "<Your user name>"
+#define MQTT_PASS               "<Your password>"
+#define MQTT_TOPIC              "<chosen_topic>"
+#define REPORT_URL              "<url_of_the_gate_server_from_this_project>"
+
+#define AP_NAME_PREFIX          "Gate_sw_"
+
+#define WIFI_PASS_EEPROM_ADDR   (0)
+#define WIFI_PASS_SIZE          (32)
+#define SSID_EEPROM_ADDR        (WIFI_PASS_EEPROM_ADDR + WIFI_PASS_SIZE)
+#define SSID_SIZE               (32)
+#define STATION_IP_ADDR         (SSID_EEPROM_ADDR + SSID_SIZE)
+#define STATION_IP_SIZE         (4)
+#define EEPROM_SIZE             (WIFI_PASS_SIZE + SSID_SIZE + STATION_IP_SIZE)   
+
+#endif

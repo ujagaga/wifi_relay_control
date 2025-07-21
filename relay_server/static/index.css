@@ -1,0 +1,241 @@
+body{
+    padding: 0;
+    margin: 0;
+}
+
+.row{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.big_btn{
+    border:0;
+    border-radius:0.3rem;
+    color:#fff;
+    line-height:4rem;
+    font-size:3rem;
+    margin:1%;
+    padding:1rem;
+    width:4rem;
+    background-color:#1fa3ec;
+    flex:1;
+    text-align: center;
+}
+.nav_btn{
+    color: white;
+    display: inline-block;
+    text-decoration: none;
+    float: left;
+    margin: 5px;
+    padding: 8px 12px;
+    background: #333;
+    border-radius: 4px;
+}
+
+.nav_btn:hover {
+  background: #555;
+}
+
+.admin_nav {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    background-color: #1fa3ec;
+}
+
+h1 {
+  margin-bottom: 1rem;
+}
+
+.flash_message {
+  min-height: 1.5rem; /* adjust as needed for one line of text */
+}
+
+.red_notification {
+  color: red;
+  margin: 0; /* remove default <p> margin */
+}
+
+.checkbox_label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+  font-weight: bold;
+  color: #333;
+}
+
+.container{
+    position: relative;
+    padding: 0 0 20px 0;
+    max-width: 800px;
+    margin: 0 auto;
+    font-family: sans-serif;
+}
+
+.user_picture_wrapper {
+  position: absolute;
+  top: 20px;
+  right: 5px;
+}
+
+.user_picture {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #1fa3ec;
+    margin-bottom: 1rem;
+}
+
+.user_info_row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.user_info_row .user_picture {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.button_row {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.manage_users_btn {
+    position: relative;
+    display: inline-block;
+    padding-right: 20px; /* to give space for the dot */
+}
+
+.red_dot {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 10px;
+    height: 10px;
+    background-color: red;
+    border-radius: 50%;
+    border: 1.5px solid white;
+    pointer-events: none;
+}
+
+
+.device_config {
+    flex: 1 1 auto;
+    margin-right: 1em;
+}
+
+.vertical_buttons {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.vertical_buttons form {
+    margin-bottom: 0.5em;
+}
+
+.device_action_btn {
+    min-width: 120px;
+}
+
+
+.device_remove {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+
+.device_row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  margin-bottom: 1.5em;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 1em;
+}
+
+
+.update_buttons {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 160px; /* Fixed width for consistent buttons */
+}
+
+.update_buttons .device_action_btn {
+  width: 100%;
+  margin-top: 0.5em;
+}
+
+.update_buttons .device_action_btn:first-child {
+  margin-top: 0; /* Remove top margin on the first button */
+}
+
+.save_btn {
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  padding: 0.6em 1em;
+  border-radius: 4px;
+  cursor: pointer;
+  text-align: center;
+  font-size: 1em;
+  transition: background 0.2s ease;
+}
+
+.save_btn:hover {
+  background-color: #0056b3;
+}
+
+.device_card {
+  background: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.device_card h2 {
+    margin-top: 0;
+    text-align: center;
+}
+
+.device_card label {
+    display: block;
+    margin: 0.5rem 0 0.25rem;
+    font-weight: bold;
+    color: #1fa3ec;
+}
+
+.device_card input[type="text"],
+.device_card input[type="number"],
+.device_card select {
+  width: 100%;
+  box-sizing: border-box; /* Make sure padding & border stay inside the width */
+  margin-bottom: 0.5em;
+  padding: 0.4em;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.device_card.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.mode-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  margin-bottom: 2em;
+}
