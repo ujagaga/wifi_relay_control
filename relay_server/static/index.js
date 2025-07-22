@@ -1,39 +1,41 @@
+document.addEventListener('DOMContentLoaded', function() {
+  const buttons = document.querySelectorAll('.big_btn');
 
-function addTimestampToLinks() {
-  const timestamp = new Date().getTime();
+  buttons.forEach(btn => {
+    btn.addEventListener('click', function() {
+      const button = btn;
+      const row = button.closest('.row');
+      const container = row.nextElementSibling; // .progress-bar-container
+      const id = button.dataset.id;
+      const name = row.dataset.deviceName;
 
-  const links = document.querySelectorAll('a.big_btn');
+      // Clear any previous progress bars
+      container.innerHTML = '';
 
-  links.forEach(function(link) {
-    const href = link.getAttribute('href');
+      // Create new progress bar
+      const bar = document.createElement('div');
+      bar.className = 'progress-bar';
+      container.appendChild(bar);
 
-    if (href.includes('?')) {
-      // If there's a query string, append the timestamp with an '&'
-      link.setAttribute('href', href + '&timestamp=' + timestamp);
-    } else {
-      // If there's no query string, append the timestamp with a '?'
-      link.setAttribute('href', href + '?timestamp=' + timestamp);
-    }
-  });
-}
+      // Disable all buttons
+      buttons.forEach(b => b.classList.add('disabled'));
 
-
-
-document.addEventListener('DOMContentLoaded', () => {
-    addTimestampToLinks();
-    document.querySelectorAll('.ping_time').forEach(span => {
-    const iso = span.dataset.iso;
-    if (iso) {
-      const localTime = new Date(iso).toLocaleString(undefined, {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false
+      // Animate it
+      requestAnimationFrame(() => {
+        bar.style.width = '100%';
       });
-      span.textContent = localTime;
-    }
+
+      // Fire request
+      fetch(`/unlock?id=${id}&name=${encodeURIComponent(name)}`)
+        .finally(() => {
+          // Wait for the progress bar to finish (1 second)
+          setTimeout(() => {
+            container.innerHTML = ''; // remove bar
+
+            // Re-enable all buttons
+            buttons.forEach(b => b.classList.remove('disabled'));
+          }, 1000);
+        });
+    });
   });
 });

@@ -17,6 +17,7 @@ from logging.handlers import RotatingFileHandler
 import settings
 from datetime import datetime, timezone
 from flask_wtf import CSRFProtect
+from flask import jsonify
 
 
 sys.path.insert(0, os.path.dirname(__file__))
@@ -280,11 +281,11 @@ def unlock():
 
     token = request.cookies.get('token')
     if not token:
-        return redirect(get_url('login'))
+        return jsonify({"error": "unauthorized"}), 401
 
     user = database.get_user(connection=g.db, token=token)
     if not user:
-        return redirect(get_url('login'))
+        return jsonify({"error": "unauthorized"}), 401
 
     main_device = database.get_device(connection=g.db, name="main")
     all_devices = database.get_device(connection=g.db)
@@ -296,10 +297,10 @@ def unlock():
                     "command": "trigger",
                     "relay_id": relay_index
                 })
-
                 helper.publish_mqtt_message(mqtt_message)
+                return jsonify({"status": "ok"}), 200
 
-    return render_template('unlock.html', relay_id=relay_index)
+    return jsonify({"error": "device not found"}), 404
 
 
 @application.route('/manage_users', methods=['GET'])

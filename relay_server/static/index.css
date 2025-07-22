@@ -1,8 +1,11 @@
+:root {
+  --accent-color: #1fa3ec;
+}
+
 body{
     padding: 0;
     margin: 0;
 }
-
 .row{
     display: flex;
     justify-content: space-between;
@@ -10,6 +13,7 @@ body{
 }
 
 .big_btn{
+    background-color: var(--accent-color);
     border:0;
     border-radius:0.3rem;
     color:#fff;
@@ -18,10 +22,16 @@ body{
     margin:1%;
     padding:1rem;
     width:4rem;
-    background-color:#1fa3ec;
     flex:1;
     text-align: center;
 }
+.big_btn.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+
 .nav_btn{
     color: white;
     display: inline-block;
@@ -38,10 +48,10 @@ body{
 }
 
 .admin_nav {
+    background-color: var(--accent-color);
     display: flex;
     gap: 1rem;
     margin-bottom: 1rem;
-    background-color: #1fa3ec;
 }
 
 h1 {
@@ -75,9 +85,9 @@ h1 {
 }
 
 .user_picture_wrapper {
-  position: absolute;
-  top: 20px;
-  right: 5px;
+    position: absolute;
+    top: 20px;
+    right: 5px;
 }
 
 .user_picture {
@@ -85,8 +95,8 @@ h1 {
     height: 50px;
     border-radius: 50%;
     object-fit: cover;
-    border: 2px solid #1fa3ec;
     margin-bottom: 1rem;
+    border: 2px solid var(--accent-color);
 }
 
 .user_info_row {
@@ -238,4 +248,12 @@ h1 {
   flex-direction: column;
   gap: 0.5em;
   margin-bottom: 2em;
+}
+
+.progress-bar {
+    width: 0%;
+    height: 5px;
+    background: var(--accent-color);
+    transition: width 1s linear;
+    margin-top: 10px;
 }
