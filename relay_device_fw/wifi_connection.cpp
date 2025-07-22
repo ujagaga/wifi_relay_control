@@ -10,7 +10,7 @@
 #include <lwip/dns.h>
 #include <lwip/ip_addr.h>
 #include "config.h"
-
+#include <user_interface.h>
 
 static char myApName[32] = {0};    /* Array to form AP name based on read MAC */
 static char st_ssid[SSID_SIZE] = {0};    /* SSID to connect to */
@@ -216,19 +216,27 @@ void WIFIC_init(void){
   WIFIC_APMode();
 }
 
-void WIFIC_process(void){
-  if(apMode && 
-    ((millis() - apModeAttempTime) > (AP_MODE_TIMEOUT_S * 1000)) && 
-    (st_ssid[0] != 0)  
-  ){ 
+void WIFIC_process(void) {
+  if (apMode && 
+      ((millis() - apModeAttempTime) > (AP_MODE_TIMEOUT_S * 1000)) && 
+      (st_ssid[0] != 0)) {
+
+    if (wifi_softap_get_station_num() > 0) {
+      Serial.println("Clients connected — AP mode continues.");
+      apModeAttempTime = millis(); // Reset timer
+      return; // Stay in AP mode
+    }
+
+    Serial.println("No clients — checking for known SSID...");
+
     String ssidString = String(st_ssid);
     String apList = WIFIC_getApList();
     int index = apList.indexOf(ssidString);
 
     Serial.println(apList);
 
-    if (index != -1){
-      WIFIC_stationMode();      
+    if (index != -1) {
+      WIFIC_stationMode();
     }
 
     apModeAttempTime = millis();

@@ -1,4 +1,5 @@
 
 setTimeout(function() {
-  window.location.href = '/'; // Redirects to the home page
+  const timestamp = Date.now();
+  window.location.href = '/?ts=' + timestamp;
 }, 500);
