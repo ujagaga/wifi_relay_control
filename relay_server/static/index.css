@@ -2,29 +2,39 @@
   --accent-color: #1fa3ec;
 }
 
-body{
-    padding: 0;
-    margin: 0;
-}
-.row{
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
 }
 
-.big_btn{
-    background-color: var(--accent-color);
-    border:0;
-    border-radius:0.3rem;
-    color:#fff;
-    line-height:4rem;
-    font-size:3rem;
-    margin:1%;
-    padding:1rem;
-    width:4rem;
-    flex:1;
-    text-align: center;
+.row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
 }
+
+.row.single {
+  justify-content: center;
+}
+
+.big_btn {
+  flex: 1 1 auto;
+  aspect-ratio: 1 / 1;   /* Makes it a square */
+  border-radius: 50%;
+  margin: 0.5%;          /* Small gap */
+  max-width: 150px;
+  min-width: 60px;
+  font-size: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--accent-color);
+  color: #fff;
+  border: none;
+}
+
 .big_btn.disabled {
   opacity: 0.5;
   pointer-events: none;
@@ -56,6 +66,7 @@ body{
 
 h1 {
   margin-bottom: 1rem;
+  text-align: center;
 }
 
 .flash_message {
@@ -77,9 +88,11 @@ h1 {
 }
 
 .container{
+    flex: 1;
     position: relative;
     padding: 0 0 20px 0;
     max-width: 800px;
+    min-width: 600px;
     margin: 0 auto;
     font-family: sans-serif;
 }
@@ -257,3 +270,29 @@ h1 {
     transition: width 1s linear;
     margin-top: 10px;
 }
+
+.footer {
+  text-align: center;
+  margin-top: 2rem;
+  padding: 1rem 0;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.footer a {
+  color: #1fa3ec; /* or use your --accent-color */
+  text-decoration: none;
+}
+
+.footer a:hover {
+  text-decoration: underline;
+}
+
+
+
+.page-wrapper {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+

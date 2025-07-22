@@ -4,6 +4,7 @@ MQTT_TOPIC = "my/devices/unlock"        # your chosen topic
 MQTT_USER = "your_mqtt_username"
 MQTT_PASS = "your_mqtt_password"
 
+APP_TITLE = "Gate Server"
 APP_SECRET_KEY = 'SomeSuperSecretKey123'        # Used for flask secure communication
 LIFESIGN_TIMEOUT = 60 * 11                      # expect devices to ping the server at intervals less than 11 minutes
 MAX_COOKIE_AGE = 60 * 60 * 24 * 30              # If you use the same browser, it will be 30 days until you are asked to login

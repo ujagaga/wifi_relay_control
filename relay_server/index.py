@@ -156,7 +156,7 @@ def login():
         response.set_cookie('token', token, max_age=settings.MAX_COOKIE_AGE, expires=time.time() + settings.MAX_COOKIE_AGE)
         return response
 
-    return render_template('login.html')
+    return render_template('login.html', title=settings.APP_TITLE)
 
 
 @application.route('/oauth2callback')
@@ -207,7 +207,8 @@ def index():
                            connected_devices=connected_devices,
                            admin=user.get("authorized", 0) > 1,
                            unauthorized_users=unauthorized_users,
-                           user=user)
+                           user=user,
+                           title=settings.APP_TITLE)
 
 
 @application.route('/device_report', methods=['GET'])
@@ -338,7 +339,8 @@ def manage_users():
         'manage_users.html',
         unauthorized_users=unauthorized_users_sorted,
         authorized_users=authorized_users_sorted,
-        user=user
+        user=user,
+        title=settings.APP_TITLE
     )
 
 
@@ -402,7 +404,8 @@ def manage_devices():
         authorized_devices=authorized_devices,
         unauthorized_devices=unauthorized_devices,
         single_device_mode=single_device_mode,
-        user=user
+        user=user,
+        title=settings.APP_TITLE
     )
 
 
