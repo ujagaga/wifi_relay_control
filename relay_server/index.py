@@ -4,7 +4,8 @@
 '''
 pip install flask authlib paho-mqtt flask-wtf requests
 '''
-from flask import Flask, g, render_template, request, flash, redirect, make_response, url_for
+from flask import Flask, g, render_template, request, flash, redirect, make_response
+from flask import url_for as flask_url_for
 import time
 import json
 import sys
@@ -66,11 +67,12 @@ else:
         )
 
 
-def get_url(endpoint):
-    home_url = url_for('index')
-    resolved_url = url_for(endpoint).replace(home_url, '/')
-
-    return resolved_url
+def safe_url_for(endpoint, **values):
+    url = flask_url_for(endpoint, **values)
+    script_name = request.environ.get('SCRIPT_NAME', '')
+    if script_name and url.startswith(script_name):
+        url = url[len(script_name):] or '/'
+    return url
 
 
 def get_connected_devices(connection):
@@ -137,7 +139,7 @@ def teardown_request(exception):
 
 @application.route('/authorize')
 def authorize():
-    auth_url = get_url('oauth2callback')
+    auth_url = safe_url_for('oauth2callback')
     return google.authorize_redirect(f"https://{request.host}{auth_url}")
 
 
@@ -155,18 +157,18 @@ def login():
             user = database.get_user(connection=g.db, email=user_email)
         database.update_user(connection=g.db, email=user_email, token=token, authorized=2)
 
-        response = make_response(redirect(get_url('index')))
+        response = make_response(redirect(safe_url_for('index')))
         response.set_cookie('token', token, max_age=settings.MAX_COOKIE_AGE, expires=time.time() + settings.MAX_COOKIE_AGE)
         return response
 
-    return render_template('login.html', title=settings.APP_TITLE)
+    return render_template('login.html', title=settings.APP_TITLE, url_for=safe_url_for)
 
 
 @application.route('/oauth2callback')
 def oauth2callback():
     if IS_LOCAL:
         # Just redirect to index, since login is automatic in /login for local
-        return redirect(get_url('index'))
+        return redirect(safe_url_for('index'))
 
     google.authorize_access_token()
     resp = google.get('userinfo')
@@ -183,12 +185,12 @@ def oauth2callback():
 
     if not user or user['authorized'] < 1:
         flash('You are not authorized to access this app. Please contact the administrator: ujagaga@gmail.com')
-        return redirect(get_url('login'))
+        return redirect(safe_url_for('login'))
 
     token = helper.generate_token()
     database.update_user(connection=g.db, email=email, token=token, picture=picture)
 
-    response = make_response(redirect(get_url('index')))
+    response = make_response(redirect(safe_url_for('index')))
     response.set_cookie('token', token, max_age=settings.MAX_COOKIE_AGE, expires=time.time() + settings.MAX_COOKIE_AGE)
     return response
 
@@ -197,11 +199,11 @@ def oauth2callback():
 def index():
     token = request.cookies.get('token')
     if not token:
-        return redirect(get_url('login'))
+        return redirect(safe_url_for('login'))
 
     user = database.get_user(connection=g.db, token=token)
     if not user:
-        return redirect(get_url('login'))
+        return redirect(safe_url_for('login'))
 
     connected_devices = get_connected_devices(g.db)
 
@@ -211,7 +213,8 @@ def index():
                            admin=user.get("authorized", 0) > 1,
                            unauthorized_users=unauthorized_users,
                            user=user,
-                           title=settings.APP_TITLE)
+                           title=settings.APP_TITLE,
+                           url_for=safe_url_for)
 
 
 @application.route('/device_report', methods=['GET'])
@@ -311,14 +314,14 @@ def unlock():
 def manage_users():
     token = request.cookies.get('token')
     if not token:
-        return redirect(get_url('login'))
+        return redirect(safe_url_for('login'))
 
     user = database.get_user(connection=g.db, token=token)
     if not user:
-        return redirect(get_url('login'))
+        return redirect(safe_url_for('login'))
     elif user["authorized"] < 2:
         flash("You are not authorized to authorize users.")
-        return redirect(get_url('index'))
+        return redirect(safe_url_for('index'))
 
     unauthorized_users = database.get_user(connection=g.db, authorized=0)
     authorized_users = (
@@ -343,7 +346,8 @@ def manage_users():
         unauthorized_users=unauthorized_users_sorted,
         authorized_users=authorized_users_sorted,
         user=user,
-        title=settings.APP_TITLE
+        title=settings.APP_TITLE,
+        url_for=safe_url_for
     )
 
 
@@ -352,12 +356,12 @@ def manage_users():
 def manage_users_post():
     token = request.cookies.get('token')
     if not token:
-        return redirect(get_url('login'))
+        return redirect(safe_url_for('login'))
 
     user = database.get_user(connection=g.db, token=token)
     if not user or user["authorized"] < 2:
         flash("You are not authorized to perform this action.")
-        return redirect(get_url('index'))
+        return redirect(safe_url_for('index'))
 
     email = request.form.get('email')
     action = request.form.get('action')
@@ -383,12 +387,12 @@ def manage_users_post():
 def manage_devices():
     token = request.cookies.get('token')
     if not token:
-        return redirect(get_url('login'))
+        return redirect(safe_url_for('login'))
 
     user = database.get_user(connection=g.db, token=token)
     if not user or user['authorized'] < 2:
         flash('You are not authorized to authorize devices.')
-        return redirect(get_url('index'))
+        return redirect(safe_url_for('index'))
 
     try:
         main_device = database.get_device(connection=g.db, name="main")
@@ -412,7 +416,8 @@ def manage_devices():
         unauthorized_devices=unauthorized_devices,
         single_device_mode=single_device_mode,
         user=user,
-        title=settings.APP_TITLE
+        title=settings.APP_TITLE,
+        url_for=safe_url_for
     )
 
 
@@ -421,12 +426,12 @@ def manage_devices():
 def manage_devices_post():
     token = request.cookies.get('token')
     if not token:
-        return redirect(get_url('login'))
+        return redirect(safe_url_for('login'))
 
     user = database.get_user(connection=g.db, token=token)
     if not user or user['authorized'] < 2:
         flash("You are not authorized to manage devices.")
-        return redirect(get_url('index'))
+        return redirect(safe_url_for('index'))
 
     action = request.form.get('action')
 
