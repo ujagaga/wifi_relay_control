@@ -368,7 +368,7 @@ def manage_users_post():
     make_admin = request.form.get('make_admin')
 
     if not email or not action:
-        return redirect(url_for('manage_users'))
+        return redirect(safe_url_for('manage_users'))
 
     if action == 'authorize':
         level = 2 if make_admin else 1
@@ -380,7 +380,7 @@ def manage_users_post():
     elif action == 'make_admin':
         database.update_user(connection=g.db, email=email, authorized=2)
 
-    return redirect(url_for('manage_users'))
+    return redirect(safe_url_for('manage_users'))
 
 
 @application.route('/manage_devices', methods=['GET'])
@@ -460,7 +460,7 @@ def manage_devices_post():
         database.update_device(connection=g.db, name=name, data=dev_data)
         flash(f"Device '{name}' updated!")
 
-    return redirect(url_for('manage_devices'))
+    return redirect(safe_url_for('manage_devices'))
 
 
 @application.route('/toggle_device_mode', methods=['POST'])
@@ -478,7 +478,7 @@ def toggle_device_mode():
         logger.error(f"Failed to toggle device mode: {e}")
         flash("Could not toggle device mode. Check server logs and database permissions.")
 
-    return redirect(url_for('manage_devices'))
+    return redirect(safe_url_for('manage_devices'))
 
 
 if __name__ == "__main__":
