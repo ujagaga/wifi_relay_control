@@ -66,12 +66,12 @@ else:
             server_metadata_url='https://accounts.google.com/.well-known/openid-configuration'
         )
 
-
-def safe_url_for(endpoint, **values):
 '''
-On a CGI hosting, the flasks url_for populates the url with script path, 
+On a CGI hosting, the flasks url_for populates the url with script path,
 so you get junk data that does not resolve to a valid url. This is an override to clean it up.
 '''
+def safe_url_for(endpoint, **values):
+
     url = flask_url_for(endpoint, **values)
     script_name = request.environ.get('SCRIPT_NAME', '')
     if script_name and url.startswith(script_name):
