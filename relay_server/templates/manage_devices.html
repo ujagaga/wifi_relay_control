@@ -28,6 +28,10 @@
       {% endwith %}
     </div>
 
+    {% if not single_device_mode and not authorized_devices %}
+      <p style="color: red;">Warning: No devices found. The database may not be set up yet.</p>
+    {% endif %}
+
     <h2>Mode of Operation</h2>
     <form method="post" action="{{ url_for('toggle_device_mode') }}" style="margin-bottom: 2em;">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">

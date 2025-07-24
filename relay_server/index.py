@@ -388,8 +388,12 @@ def manage_devices():
         flash('You are not authorized to authorize devices.')
         return redirect(get_url('index'))
 
-    main_device = database.get_device(connection=g.db, name="main")
-    single_device_mode = bool(main_device)
+    try:
+        main_device = database.get_device(connection=g.db, name="main")
+        single_device_mode = bool(main_device)
+    except Exception as e:
+        logger.error(f"Error checking device mode: {e}")
+        single_device_mode = False  # fallback
 
     authorized_devices = database.get_device(g.db, authorized=1)
     unauthorized_devices = database.get_device(g.db, authorized=0)
@@ -455,12 +459,18 @@ def manage_devices_post():
 @application.route('/toggle_device_mode', methods=['POST'])
 def toggle_device_mode():
     mode = request.form.get('mode')
-    if mode == 'single':
-        if not database.get_device(g.db, name="main"):
-            database.add_device(g.db, "main")
-            database.update_device(g.db, name="main", authorized=1)
-    else:
-        database.delete_device(g.db, "main")
+
+    try:
+        if mode == 'single':
+            if not database.get_device(g.db, name="main"):
+                database.add_device(g.db, "main")
+                database.update_device(g.db, name="main", authorized=1)
+        else:
+            database.delete_device(g.db, "main")
+    except Exception as e:
+        logger.error(f"Failed to toggle device mode: {e}")
+        flash("Could not toggle device mode. Check server logs and database permissions.")
+
     return redirect(url_for('manage_devices'))
 
 
