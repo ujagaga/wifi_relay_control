@@ -33,6 +33,8 @@ application = Flask(__name__, static_url_path='/static', static_folder='static')
 application.config['SECRET_KEY'] = settings.APP_SECRET_KEY
 application.config['SESSION_COOKIE_NAME'] = 'gate_ctrl'
 application.config['WTF_CSRF_SECRET_KEY'] = application.config['SECRET_KEY']
+application.config['APPLICATION_ROOT'] = '/'
+
 csrf = CSRFProtect(application)
 
 CLIENT_SECRETS_FILE = "client_secret.json"
