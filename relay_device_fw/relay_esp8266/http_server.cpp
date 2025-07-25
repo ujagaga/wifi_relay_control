@@ -6,11 +6,10 @@
  */
  
 #include <ESP8266WebServer.h>
-#include <ESP8266HTTPClient.h>
 #include <pgmspace.h>
 #include "wifi_connection.h"
 #include "config.h"
-#include "switch_device.h"
+#include "relay_esp8266.h"
 #include "pinctrl.h"
 #include "ota.h"
 #include "web_socket.h"
@@ -87,8 +86,7 @@ static const char APLIST_HTML_2[] PROGMEM = R"(
       <form method='get' action='wifisave'>
         <button type='button' onclick='refresh();'>Rescan</button><br/><br/>
         <input id='s' name='s' length=32 placeholder='SSID (Leave blank for AP mode)'><br>      
-        <input id='p' name='p' length=32 placeholder='password'><br>
-        <input id='a' name='a' length=16 placeholder='static IP address (optional)'><br>       
+        <input id='p' name='p' length=32 placeholder='password'><br>        
         <br><button type='submit'>save</button>        
       </form>      
      </div>
@@ -150,6 +148,7 @@ static const char OTA_HTML[] PROGMEM = R"(
 </body>
 </html>
 )";
+
 /* Declaring a web server object. */
 ESP8266WebServer* webServer = nullptr;
 
@@ -220,7 +219,6 @@ static void selectAP(void) {
 static void saveWiFi(void){
   String ssid = webServer->arg("s");
   String pass = webServer->arg("p");
-  String ipaddr = webServer->arg("a");
   
   if((ssid.length() > 63) || (pass.length() > 63)){
       MAIN_setStatusMsg("Sorry, this module can only remember SSID and a PASSWORD up to 63 bytes long.");
@@ -228,50 +226,23 @@ static void saveWiFi(void){
       return;
   } 
 
-  IPAddress newStationIP;
-  newStationIP.fromString(ipaddr);
+  String st_ssid = WIFIC_getStSSID();
+  String st_pass = WIFIC_getStPass();
 
-  String st_ssid = "";
-  String st_pass = "";
-  IPAddress stationIP;
-
-  if(ssid.length() > 0){
-    bool cmpFlag = true;
-
-    st_ssid = WIFIC_getStSSID();
-    st_pass = WIFIC_getStPass();
-    stationIP = WIFIC_getStIP();    
-
-    if(!st_ssid.equals(ssid) || !st_pass.equals(pass)){
-      cmpFlag = false;
-    }
-      
-    if(cmpFlag){
-       if((newStationIP[0] != stationIP[0]) || (newStationIP[1] != stationIP[1]) || (newStationIP[2] != stationIP[2]) || (newStationIP[3] != stationIP[3])){
-          cmpFlag = false;
-       }
-    }
-  
-    if(cmpFlag){
+  if(st_ssid.equals(ssid) && st_pass.equals(pass)){
       MAIN_setStatusMsg("All parameters are already set as requested.");
       showRedirectPage();      
       return;
-    }   
-  }
-  
+  }   
+
   WIFIC_setStSSID(ssid);
   WIFIC_setStPass(pass);
-  WIFIC_setStIP(newStationIP); 
 
   String http_statusMessage;
-  
+
   if(ssid.length() > 3){    
     http_statusMessage = "Saving settings and connecting to SSID: ";
-    http_statusMessage += ssid; 
-    http_statusMessage += " ,IP: ";
-    
-    http_statusMessage += ipaddr;   
-    
+    http_statusMessage += ssid;    
   }else{       
     http_statusMessage = "Saving settings and switching to AP mode only.";    
   }
@@ -296,7 +267,6 @@ static void saveWiFi(void){
 }
 
 void HTTP_SERVER_process(void){
-  
   webServer->handleClient(); 
 }
 

@@ -86,9 +86,7 @@ static const char APLIST_HTML_2[] PROGMEM = R"(
       <form method='get' action='wifisave'>
         <button type='button' onclick='refresh();'>Rescan</button><br/><br/>
         <input id='s' name='s' length=32 placeholder='SSID (Leave blank for AP mode)'><br>      
-        <input id='p' name='p' length=32 placeholder='password'><br>
-        <!-- Static IP input removed here -->
-        <!--<input id='a' name='a' length=16 placeholder='static IP address (optional)'><br>-->
+        <input id='p' name='p' length=32 placeholder='password'><br>        
         <br><button type='submit'>save</button>        
       </form>      
      </div>

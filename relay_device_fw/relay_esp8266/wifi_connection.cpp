@@ -168,20 +168,6 @@ IPAddress WIFIC_getStIP(void){
   return stationIP;
 }
 
-void WIFIC_setStIP(IPAddress newStationIP){
-  stationIP = newStationIP;
-  
-  EEPROM.begin(EEPROM_SIZE);
-    
-  EEPROM.put(STATION_IP_ADDR + 0, newStationIP[0]);
-  EEPROM.put(STATION_IP_ADDR + 1, newStationIP[1]);
-  EEPROM.put(STATION_IP_ADDR + 2, newStationIP[2]);
-  EEPROM.put(STATION_IP_ADDR + 3, newStationIP[3]);
-  
-  EEPROM.commit();
-}
-
-
 void WIFIC_init(void){  
   ESP.wdtFeed();
    /* Read settings from EEPROM */
@@ -208,11 +194,6 @@ void WIFIC_init(void){
     i++;
   }while(i < SSID_SIZE);
   st_ssid[i] = 0;
-
-  EEPROM.get(STATION_IP_ADDR + 0, stationIP[0]);
-  EEPROM.get(STATION_IP_ADDR + 1, stationIP[1]);
-  EEPROM.get(STATION_IP_ADDR + 2, stationIP[2]);
-  EEPROM.get(STATION_IP_ADDR + 3, stationIP[3]);
 
   WIFIC_APMode();
 }
