@@ -70,6 +70,10 @@ void WIFIC_APMode(void){
 
   WiFi.mode(WIFI_AP);  
   WiFi.begin();
+  
+  String ApName = AP_NAME_PREFIX + WiFi.macAddress();
+  ApName.toCharArray(myApName, ApName.length() + 1); 
+
   WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
   
   if(WiFi.softAP(myApName, PASSWORD)){
@@ -209,9 +213,6 @@ void WIFIC_init(void){
   EEPROM.get(STATION_IP_ADDR + 1, stationIP[1]);
   EEPROM.get(STATION_IP_ADDR + 2, stationIP[2]);
   EEPROM.get(STATION_IP_ADDR + 3, stationIP[3]);
-   
-  String ApName = AP_NAME_PREFIX + WiFi.macAddress();
-  ApName.toCharArray(myApName, ApName.length() + 1);   
 
   WIFIC_APMode();
 }
