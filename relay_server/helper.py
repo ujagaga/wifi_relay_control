@@ -7,6 +7,9 @@ from datetime import datetime, timezone
 import threading
 import paho.mqtt.publish as publish
 import logging
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 logger = logging.getLogger(__name__)
 DATE_FORMAT = "%Y-%m-%d"
@@ -56,10 +59,7 @@ def publish_mqtt_message(message):
             payload=message,
             hostname=settings.MQTT_BROKER,
             port=settings.MQTT_PORT,
-            auth={
-                'username': settings.MQTT_USER,
-                'password': settings.MQTT_PASS
-            },
+            auth={'username': settings.MQTT_USER, 'password': settings.MQTT_PASS},
             keepalive=60
         )
         logger.info(f"Published MQTT message: {message}")
@@ -74,3 +74,26 @@ def iso_to_epoch(iso_str: str) -> int:
 
 def epoch_to_iso(epoch: int) -> str:
     return datetime.fromtimestamp(epoch, tz=timezone.utc).isoformat()
+
+
+'''
+Sends an email using configured credentials. 
+'''
+def send_email(recipient, subject, body):
+    msg = MIMEMultipart()
+    msg['From'] = settings.SMTP_USER
+    msg['To'] = recipient
+    msg['Subject'] = subject
+    msg.attach(MIMEText(body, 'plain'))
+
+    try:
+        with smtplib.SMTP(settings.SMTP_SERVER, settings.SMTP_PORT) as server:
+            server.ehlo()
+            # Add if needed:
+            # server.starttls()
+            server.login(settings.SMTP_USER, settings.SMTP_PASS)
+            server.sendmail(settings.SMTP_USER, recipient, msg.as_string())
+    except Exception as e:
+        print(f"Error sending email: {e}")
+
+

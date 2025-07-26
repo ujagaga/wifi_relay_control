@@ -181,15 +181,9 @@ def oauth2callback():
     picture = user_info.get("picture")
 
     user = database.get_user(connection=g.db, email=email)
-
-    unauthorized_users = database.get_user(connection=g.db, authorized=False)
-    if not user and (not unauthorized_users or (unauthorized_users and len(unauthorized_users) < 50)):
-        database.add_user(connection=g.db, email=email)
-        user = database.get_user(connection=g.db, email=email)
-
-    if not user or user['authorized'] < 1:
-        flash('You are not authorized to access this app. Please contact the administrator: ujagaga@gmail.com')
-        return redirect(safe_url_for('login'))
+    if not user:
+        # Redirect to complete_registration
+        return redirect(safe_url_for('complete_registration', email=email))
 
     token = helper.generate_token()
     database.update_user(connection=g.db, email=email, token=token, picture=picture)
@@ -385,6 +379,70 @@ def manage_users_post():
         database.update_user(connection=g.db, email=email, authorized=2)
 
     return redirect(safe_url_for('manage_users'))
+
+
+@application.route('/approve_user', methods=['GET'])
+def approve_user():
+    email = request.args.get('email')
+    token = request.args.get('token')
+
+    if not email or not token:
+        return "Invalid request.", 400
+
+    user = database.get_user(connection=g.db, email=email)
+    if not user:
+        return "User not found.", 404
+
+    # Validate token matches
+    if user.get('token') != token:
+        return "Invalid or expired approval token.", 403
+
+    # Approve and clear token — optional
+    database.update_user(connection=g.db, email=email, authorized=1, token=None)
+
+    return f"✅ User {email} has been approved! They can now log in."
+
+
+@application.route('/complete_registration', methods=['GET', 'POST'])
+def complete_registration():
+    if request.method == 'GET':
+        email = request.args.get('email')
+        if not email:
+            return "Missing email", 400
+
+        return render_template(
+            'complete_registration.html',
+            email=email,
+            title="Complete Registration",
+            url_for=safe_url_for
+        )
+
+    else:
+        email = request.form.get('email')
+        apartment = request.form.get('apartment')
+
+        if not email or not apartment:
+            flash("Missing details")
+            return redirect(request.url)
+
+        # Generate approval token
+        approval_token = helper.generate_token()
+        database.add_user(connection=g.db, email=email, token=approval_token, apartment=apartment)
+
+        # Notify admins
+        admins = database.get_user(connection=g.db, authorized=2)
+        for admin in admins:
+            approve_link = f"{request.host_url}approve_user?email={email}&token={approval_token}"
+            helper.send_email(
+                recipient=admin.get('email'),
+                subject=f"New user sign up at {settings.APP_TITLE}",
+                body=f"New user: {email}\nApartment: {apartment}\n\n"
+                     f"Approve directly: {approve_link}\n"
+                     f"Or manage here: {request.host_url}{safe_url_for('manage_users')}"
+            )
+
+        flash("Registration submitted! Please wait for approval.")
+        return redirect(safe_url_for('login'))
 
 
 @application.route('/manage_devices', methods=['GET'])

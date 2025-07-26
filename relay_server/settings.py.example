@@ -1,8 +1,13 @@
 MQTT_BROKER = "localhost"           # or your broker IP
 MQTT_PORT = 1883                    # default MQTT port. I use 50000 because my hosting provider does not allow outbound to 1883
-MQTT_TOPIC = "my/devices/unlock"        # your chosen topic
+MQTT_TOPIC = "my/devices/unlock"    # your chosen topic
 MQTT_USER = "your_mqtt_username"
 MQTT_PASS = "your_mqtt_password"
+
+SMTP_SERVER = "your smtp server without ssl"
+SMTP_PORT = 587
+SMTP_USER = "account_mail@smtp.server"
+SMTP_PASS = "user_account_password"
 
 APP_TITLE = "Gate Server"
 APP_SECRET_KEY = 'SomeSuperSecretKey123'        # Used for flask secure communication

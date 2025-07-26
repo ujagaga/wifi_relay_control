@@ -25,7 +25,8 @@ def init_database(connection):
             email TEXT NOT NULL UNIQUE,
             token TEXT UNIQUE,
             picture TEXT,
-            authorized INTEGER DEFAULT 0
+            authorized INTEGER DEFAULT 0,
+            apartment TEXT
         );
         """
         cursor.execute(sql)
@@ -57,11 +58,11 @@ def close_db(connection):
     connection.close()
 
 
-def add_user(connection, email: str):
-    sql = "INSERT INTO users (email) VALUES (?);"
+def add_user(connection, email: str, token:str, apartment: str):
+    sql = "INSERT OR REPLACE INTO users (email, token, apartment) VALUES (?, ?, ?);"
 
     try:
-        connection.execute(sql, (email,))
+        connection.execute(sql, (email, token, apartment))
         connection.commit()
     except Exception as exc:
         exc_type, exc_obj, exc_tb = sys.exc_info()
