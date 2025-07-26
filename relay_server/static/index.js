@@ -26,7 +26,8 @@ document.addEventListener('DOMContentLoaded', function() {
       });
 
       // Fire request
-      fetch(`/unlock?id=${id}&name=${encodeURIComponent(name)}`)
+      const timestamp = Date.now();
+      fetch(`/unlock?id=${id}&name=${encodeURIComponent(name)}&ts=${timestamp}`)
         .finally(() => {
           // Wait for the progress bar to finish (1 second)
           setTimeout(() => {

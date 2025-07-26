@@ -7,7 +7,8 @@
 </head>
 <body>
 <div class="container">
-    <h2>Complete Your Registration</h2>
+    <h2>Registration</h2>
+    <p>You are not a registered user. If you live in our building, please register.</p>
 
     <form method="post" action="{{ url_for('complete_registration') }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">

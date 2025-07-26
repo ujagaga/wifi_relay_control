@@ -449,7 +449,7 @@ def complete_registration():
                 f"Apartment: {apartment}\n"
                 f"Comment: {comment}\n\n"
                 f"Approve directly: {approve_link}\n"
-                f"Or manage here: {request.host_url}{safe_url_for('manage_users')}"
+                f"Or manage here: {request.host_url.rstrip('/')}{safe_url_for('manage_users')}"
             )
 
             helper.send_email(
@@ -458,7 +458,7 @@ def complete_registration():
                 body=body
             )
 
-        flash("Registration submitted! You will receive an email when an administrator approves it/")
+        flash("Registration submitted! You will receive an email when an administrator approves it")
         return redirect(safe_url_for('login'))
 
 
