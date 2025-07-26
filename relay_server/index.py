@@ -400,13 +400,23 @@ def approve_user():
     # Approve and clear token — optional
     database.update_user(connection=g.db, email=email, authorized=1, token=None)
 
-    return f"✅ User {email} has been approved! They can now log in."
+    body = (f"Your application for {settings.APP_TITLE} has been approved.\n "
+            f"You may now access {request.host_url}")
+
+    helper.send_email(
+        recipient=email,
+        subject=f"{settings.APP_TITLE} registration approved",
+        body=body
+    )
+
+    return f"✅ User {email} has been approved and email sent as confirmation! They can now log in."
 
 
 @application.route('/complete_registration', methods=['GET', 'POST'])
 def complete_registration():
     if request.method == 'GET':
         email = request.args.get('email')
+
         if not email:
             return "Missing email", 400
 
@@ -420,6 +430,7 @@ def complete_registration():
     else:
         email = request.form.get('email')
         apartment = request.form.get('apartment')
+        comment = request.form.get('comment') or ''
 
         if not email or not apartment:
             flash("Missing details")
@@ -433,15 +444,21 @@ def complete_registration():
         admins = database.get_user(connection=g.db, authorized=2)
         for admin in admins:
             approve_link = f"{request.host_url}approve_user?email={email}&token={approval_token}"
+            body = (
+                f"New user: {email}\n"
+                f"Apartment: {apartment}\n"
+                f"Comment: {comment}\n\n"
+                f"Approve directly: {approve_link}\n"
+                f"Or manage here: {request.host_url}{safe_url_for('manage_users')}"
+            )
+
             helper.send_email(
                 recipient=admin.get('email'),
                 subject=f"New user sign up at {settings.APP_TITLE}",
-                body=f"New user: {email}\nApartment: {apartment}\n\n"
-                     f"Approve directly: {approve_link}\n"
-                     f"Or manage here: {request.host_url}{safe_url_for('manage_users')}"
+                body=body
             )
 
-        flash("Registration submitted! Please wait for approval.")
+        flash("Registration submitted! You will receive an email when an administrator approves it/")
         return redirect(safe_url_for('login'))
 
 
