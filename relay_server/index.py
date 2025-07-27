@@ -288,6 +288,9 @@ def unlock():
     if not token:
         return jsonify({"error": "unauthorized"}), 401
 
+    if not device_name:
+        return redirect(safe_url_for('index'))
+
     user = database.get_user(connection=g.db, token=token)
     if not user:
         return jsonify({"error": "unauthorized"}), 401

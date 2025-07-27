@@ -7,7 +7,6 @@
 #include "wifi_connection.h"
 #include "config.h"
 
-#define DEBOUNCE_TIMEOUT    800
 
 static int currentPinVal[4] = {0}; 
 static int pin_num[4] = {RELAY_1_PIN, RELAY_2_PIN, RELAY_3_PIN, RELAY_4_PIN};
@@ -26,7 +25,7 @@ void PINCTRL_trigger(int id)
     return;
   }
 
-  if((millis() - PinWriteTimestamp[id]) < DEBOUNCE_TIMEOUT){
+  if((millis() - PinWriteTimestamp[id]) < TRIGGER_TIMEOUT){
     return;
   }  
 
@@ -37,7 +36,7 @@ void PINCTRL_trigger(int id)
 
 void PINCTRL_process(){
   for(int i = 0; i < 4; ++i){
-    if((millis() - PinWriteTimestamp[i]) > DEBOUNCE_TIMEOUT){
+    if((millis() - PinWriteTimestamp[i]) > TRIGGER_TIMEOUT){
       if(PinWriteTimestamp[i] > 0){
         digitalWrite(pin_num[i], LOW);
         PinWriteTimestamp[i] = 0;
