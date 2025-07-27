@@ -157,7 +157,7 @@ def login():
         user_email = "local@localhost"
         user = database.get_user(connection=g.db, email=user_email)
         if not user:
-            database.add_user(connection=g.db, email=user_email)
+            database.add_user(connection=g.db, email=user_email, apartment='0', token=token )
             user = database.get_user(connection=g.db, email=user_email)
         database.update_user(connection=g.db, email=user_email, token=token, authorized=2)
 

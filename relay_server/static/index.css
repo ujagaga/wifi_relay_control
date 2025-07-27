@@ -2,7 +2,6 @@
   --accent-color: #1fa3ec;
 }
 
-
 html, body {
   height: 100%;
   margin: 0;
@@ -40,7 +39,6 @@ html, body {
   pointer-events: none;
   cursor: not-allowed;
 }
-
 
 .nav_btn{
     color: white;
@@ -92,7 +90,7 @@ h1 {
     position: relative;
     padding: 0 0 20px 0;
     max-width: 800px;
-    min-width: 600px;
+    min-width: 400px;
     margin: 0 auto;
     font-family: sans-serif;
 }
