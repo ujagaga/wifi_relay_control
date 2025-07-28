@@ -38,30 +38,43 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   buttons.forEach(btn => {
-    let pressTimer = null;
-    let longPress = false;
+  let pressTimer = null;
+  let longPress = false;
 
-    btn.addEventListener('mousedown', e => {
-      longPress = false;
-      pressTimer = setTimeout(() => {
-        longPress = true;
-        const row = btn.closest('.row');
-        const id = btn.dataset.id;
-        const name = row.dataset.deviceName;
-        const url = `/?id=${id}&name=${encodeURIComponent(name)}`;
-        window.open(url, '_blank');
-      }, 1500); // 1500 = long press
-    });
+  const startPress = (event) => {
+    event.preventDefault(); // Prevent default to avoid triggering clicks after long press
+    longPress = false;
+    pressTimer = setTimeout(() => {
+      longPress = true;
+      const row = btn.closest('.row');
+      const id = btn.dataset.id;
+      const name = row.dataset.deviceName;
+      const url = `/?id=${id}&name=${encodeURIComponent(name)}`;
+      window.open(url, '_blank');
+    }, 1500);
+  };
 
-    btn.addEventListener('mouseup', () => clearTimeout(pressTimer));
-    btn.addEventListener('mouseleave', () => clearTimeout(pressTimer));
+  const cancelPress = () => {
+    clearTimeout(pressTimer);
+  };
 
-    btn.addEventListener('click', () => {
-      if (!longPress) {
-        handleUnlock(btn);
-      }
-    });
+  // Desktop
+  btn.addEventListener('mousedown', startPress);
+  btn.addEventListener('mouseup', cancelPress);
+  btn.addEventListener('mouseleave', cancelPress);
+
+  // Touch devices
+  btn.addEventListener('touchstart', startPress, { passive: false });
+  btn.addEventListener('touchend', cancelPress);
+  btn.addEventListener('touchcancel', cancelPress);
+
+  btn.addEventListener('click', (e) => {
+    if (!longPress) {
+      handleUnlock(btn);
+    }
   });
+});
+
 
   // Trigger from URL if present
   const params = new URLSearchParams(window.location.search);
