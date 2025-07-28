@@ -165,7 +165,7 @@ def login():
         response.set_cookie('token', token, max_age=settings.MAX_COOKIE_AGE, expires=time.time() + settings.MAX_COOKIE_AGE)
         return response
 
-    return render_template('login.html', title=settings.APP_TITLE, url_for=safe_url_for)
+    return render_template('signin.html', title=settings.APP_TITLE, url_for=safe_url_for)
 
 
 @application.route('/oauth2callback')
@@ -206,7 +206,7 @@ def index():
     connected_devices = get_connected_devices(g.db)
 
     unauthorized_users = database.get_user(connection=g.db, authorized=0)
-    return render_template('index.html',
+    return render_template('home.html',
                            connected_devices=connected_devices,
                            admin=user.get("authorized", 0) > 1,
                            unauthorized_users=unauthorized_users,
