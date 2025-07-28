@@ -95,7 +95,7 @@
 
             {% if device.ping_at %}
               <p><strong>Last Ping:</strong>
-                <span class="ping_time" data-iso="{{ device.ping_at }}"></span>
+                <span class="ping_time" data-iso="{{ device.ping_at }}">UTC: {{ device.ping_at }}</span>
               </p>
             {% else %}
               <p><strong>Last Ping:</strong> N/A</p>

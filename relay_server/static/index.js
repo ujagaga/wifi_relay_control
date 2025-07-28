@@ -1,6 +1,14 @@
 document.addEventListener('DOMContentLoaded', function () {
   const buttons = document.querySelectorAll('.big_btn');
 
+  document.querySelectorAll('.ping_time').forEach(span => {
+    const iso = span.dataset.iso;
+    if (iso) {
+      const localTime = new Date(iso).toLocaleString(); // formatted for user's locale
+      span.textContent = `${localTime}`;
+    }
+  });
+
   function handleUnlock(button) {
     const row = button.closest('.row');
     const container = row.nextElementSibling;
