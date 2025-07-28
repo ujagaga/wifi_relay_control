@@ -38,4 +38,20 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
   });
+
+// Trigger from URL if present
+  const params = new URLSearchParams(window.location.search);
+  const autoId = params.get('id');
+  const autoName = params.get('name');
+
+  if (autoId && autoName) {
+    const match = Array.from(buttons).find(btn => {
+      const row = btn.closest('.row');
+      return btn.dataset.id === autoId && row?.dataset.deviceName === autoName;
+    });
+
+    if (match) {
+      handleUnlock(match);
+    }
+  }
 });
