@@ -29,6 +29,7 @@
           <div class="user_info_row">
             <img src="{{ u.picture }}" alt="User picture" class="user_picture">
             <p><strong>Email:</strong> {{ u.email }}</p>
+            <p><strong>Apartment:</strong> {{ u.apartment }}</p>
           </div>
         </div>
 
@@ -62,6 +63,7 @@
           <div class="user_info_row">
             <img src="{{ a.picture }}" alt="User picture" class="user_picture">
             <p><strong>Email:</strong> {{ a.email }}</p>
+            <p><strong>Apartment:</strong> {{ a.apartment }}</p>
             <p><strong>Role:</strong> {% if a.authorized > 1 %}Admin{% else %}User{% endif %}</p>
           </div>
         </div>
