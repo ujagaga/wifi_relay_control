@@ -38,62 +38,37 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   buttons.forEach(btn => {
-    let pressTimer = null;
-    let longPress = false;
-    let hasMoved = false;
+      let pressTimer = null;
+      let longPress = false;
 
-    const startPress = (event) => {
-      longPress = false;
-      hasMoved = false;
-      pressTimer = setTimeout(() => {
-        longPress = true;
-        const row = btn.closest('.row');
-        const id = btn.dataset.id;
-        const name = row.dataset.deviceName;
-        const url = `/?id=${id}&name=${encodeURIComponent(name)}`;
-        window.open(url, '_blank');
-      }, 800); // faster long-press
-    };
+      const startPress = () => {
+        longPress = false;
+        pressTimer = setTimeout(() => {
+          longPress = true;
+          const row = btn.closest('.row');
+          const id = btn.dataset.id;
+          const name = row.dataset.deviceName;
+          const url = `/?id=${id}&name=${encodeURIComponent(name)}`;
+          window.open(url, '_blank');
+        }, 800);
+      };
 
-    const cancelPress = () => {
-      clearTimeout(pressTimer);
-    };
+      const cancelPress = () => {
+        clearTimeout(pressTimer);
+      };
 
-    // Mouse events
-    btn.addEventListener('mousedown', startPress);
-    btn.addEventListener('mouseup', () => {
-      if (!longPress) handleUnlock(btn);
-      cancelPress();
-    });
-    btn.addEventListener('mouseleave', cancelPress);
+      btn.addEventListener('pointerdown', startPress);
+      btn.addEventListener('pointerup', () => {
+        cancelPress();
+        if (!longPress) {
+          handleUnlock(btn);
+        }
+      });
 
-    // Touch events
-    btn.addEventListener('touchstart', (e) => {
-      hasMoved = false;
-      startPress(e);
-    }, { passive: true });
-
-    btn.addEventListener('touchmove', () => {
-      hasMoved = true;
-      cancelPress();
+      btn.addEventListener('pointerleave', cancelPress);
+      btn.addEventListener('pointercancel', cancelPress);
     });
 
-    btn.addEventListener('touchend', (e) => {
-      if (!longPress && !hasMoved) {
-        handleUnlock(btn);
-      }
-      cancelPress();
-    });
-
-    btn.addEventListener('touchcancel', cancelPress);
-
-    // Prevent default click behavior only if touchstart was detected
-    btn.addEventListener('click', (e) => {
-      if (!longPress) {
-        handleUnlock(btn);
-      }
-    });
-  });
 
   // Trigger from URL if present
   const params = new URLSearchParams(window.location.search);
