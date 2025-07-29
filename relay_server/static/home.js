@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function () {
           buttons.forEach(b => b.classList.remove('disabled'));
         }, 1000);
       });
-  }
+    }
 
   buttons.forEach(btn => {
     let pressTimer = null;
@@ -64,14 +64,27 @@ document.addEventListener('DOMContentLoaded', function () {
     btn.addEventListener('mouseleave', cancelPress);
 
     // Touch
-    btn.addEventListener('touchstart', startPress, { passive: false });
-    btn.addEventListener('touchend', (e) => {
-        cancelPress();
-        if (!longPress) {
-          handleUnlock(btn); // ✅ This was missing
-        }
+    let touchMoved = false;
+
+    btn.addEventListener('touchstart', (e) => {
+      touchMoved = false;
+      startPress(e);
+    }, { passive: false });
+
+    btn.addEventListener('touchmove', () => {
+      touchMoved = true;
     });
+
+    btn.addEventListener('touchend', (e) => {
+      cancelPress();
+      if (!longPress && !touchMoved) {
+        e.preventDefault(); // may help on some devices
+        handleUnlock(btn);
+      }
+    }, { passive: false });
+
     btn.addEventListener('touchcancel', cancelPress);
+
 
     // Desktop click
     btn.addEventListener('click', (e) => {
