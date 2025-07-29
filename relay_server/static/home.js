@@ -37,32 +37,25 @@ document.addEventListener('DOMContentLoaded', function () {
       });
   }
 
-  buttons.forEach(btn => {
-    let pressStart = 0;
+ buttons.forEach(btn => {
+  const row = btn.closest('.row');
+  const id = btn.dataset.id;
+  const name = row.dataset.deviceName;
 
-    btn.addEventListener('pointerdown', () => {
-        pressStart = Date.now();
-    }, { passive: false });
+  // Short press: regular click
+  btn.addEventListener('click', (e) => {
+    e.preventDefault(); // prevent default behavior just in case
+    handleUnlock(btn);
+  });
 
-     btn.addEventListener('pointerup', () => {
-        const pressDuration = Date.now() - pressStart;
-        const row = btn.closest('.row');
-        const id = btn.dataset.id;
-        const name = row.dataset.deviceName;
+  // Long press: contextmenu event
+  btn.addEventListener('contextmenu', (e) => {
+    e.preventDefault(); // stop the right-click menu
+    const url = `/?id=${id}&name=${encodeURIComponent(name)}`;
+    window.open(url, '_blank');
+  });
+});
 
-        if (pressDuration >= 800) {
-          // Long press: open new tab
-          const url = `/?id=${id}&name=${encodeURIComponent(name)}`;
-          window.open(url, '_blank');
-        } else {
-          // Short press: handle unlock
-          handleUnlock(btn);
-        }
-      }, { passive: false });
-
-      btn.addEventListener('pointerleave', () => { pressStart = 0; }, { passive: false });
-      btn.addEventListener('pointercancel', () => { pressStart = 0; }, { passive: false });
-    });
 
 
 
