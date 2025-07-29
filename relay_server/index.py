@@ -324,7 +324,7 @@ def unlock():
 
     if connected_devices:
         for device in connected_devices:
-            if main_device or device["name"] == device_name:
+            if device["name"] == device_name or main_device:
                 mqtt_message = json.dumps({
                     "host": device["name"],
                     "command": "trigger",
@@ -356,8 +356,6 @@ def manage_users():
         + database.get_user(connection=g.db, authorized=2)
     )
 
-    print("USERS:", authorized_users)
-
     # ✅ Sort: put current user last, others alphabetical by email
     authorized_users_sorted = sorted(
         authorized_users,
@@ -370,8 +368,6 @@ def manage_users():
         key=lambda u: u["email"].lower()
     )
 
-
-
     return render_template(
         'manage_users.html',
         unauthorized_users=unauthorized_users_sorted,
@@ -380,7 +376,6 @@ def manage_users():
         title=settings.APP_TITLE,
         url_for=safe_url_for
     )
-
 
 
 @application.route('/manage_users', methods=['POST'])
