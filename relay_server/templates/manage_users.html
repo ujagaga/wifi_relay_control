@@ -27,11 +27,10 @@
       <div class="device_row">
         <div class="device_card device_config">
           <div class="user_info_row">
-            <img src="{{ a.picture }}" alt="User picture" class="user_picture">
+            <img src="{{ u.picture }}" alt="User picture" class="user_picture">
             <div class="user_text_info">
-              <p><strong>Email:</strong> {{ a.email }}</p>
-              <p><strong>Apartment:</strong> {{ a.apartment }}</p>
-              <p><strong>Role:</strong> {% if a.authorized > 1 %}Admin{% else %}User{% endif %}</p>
+              <p><strong>Email:</strong> {{ u.email }}</p>
+              <p><strong>Apartment:</strong> {{ u.apartment }}</p>
             </div>
           </div>
         </div>
@@ -65,9 +64,11 @@
         <div class="device_card device_config">
           <div class="user_info_row">
             <img src="{{ a.picture }}" alt="User picture" class="user_picture">
-            <p><strong>Email:</strong> {{ a.email }}</p>
-            <p><strong>Apartment:</strong> {{ a.apartment }}</p>
-            <p><strong>Role:</strong> {% if a.authorized > 1 %}Admin{% else %}User{% endif %}</p>
+            <div class="user_text_info">
+              <p><strong>Email:</strong> {{ a.email }}</p>
+              <p><strong>Apartment:</strong> {{ a.apartment }}</p>
+              <p><strong>Role:</strong> {% if a.authorized > 1 %}Admin{% else %}User{% endif %}</p>
+            </div>
           </div>
         </div>
 
