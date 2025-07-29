@@ -57,16 +57,16 @@ document.addEventListener('DOMContentLoaded', function () {
         clearTimeout(pressTimer);
       };
 
-      btn.addEventListener('pointerdown', startPress);
-      btn.addEventListener('pointerup', () => {
-        cancelPress();
-        if (!longPress) {
-          handleUnlock(btn);
-        }
-      });
+      btn.addEventListener('pointerdown', startPress, { passive: false });
+        btn.addEventListener('pointerup', () => {
+          cancelPress();
+          if (!longPress) {
+            handleUnlock(btn);
+          }
+        }, { passive: false });
+        btn.addEventListener('pointerleave', cancelPress, { passive: false });
+        btn.addEventListener('pointercancel', cancelPress, { passive: false });
 
-      btn.addEventListener('pointerleave', cancelPress);
-      btn.addEventListener('pointercancel', cancelPress);
     });
 
 
