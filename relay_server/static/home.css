@@ -286,8 +286,6 @@ h1 {
   text-decoration: underline;
 }
 
-
-
 .page-wrapper {
   min-height: 100%;
   display: flex;
@@ -315,4 +313,10 @@ h1 {
   flex: 1 1 auto;
   min-width: 0; /* allows text to wrap */
   word-break: break-word;
+}
+
+.user_text_info p {
+  margin: 2px 0;
+  line-height: 1.1;
+  font-size: 0.9em;
 }
