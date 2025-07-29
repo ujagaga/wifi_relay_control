@@ -4,7 +4,7 @@
 '''
 pip install flask authlib paho-mqtt flask-wtf requests
 '''
-from flask import Flask, g, render_template, request, flash, redirect, make_response
+from flask import Flask, g, render_template, request, flash, redirect, make_response, Response
 from flask import url_for as flask_url_for
 import time
 import json
@@ -464,6 +464,23 @@ def complete_registration():
 
         flash("Registration submitted! You will receive an email when an administrator approves it")
         return redirect(safe_url_for('login'))
+
+
+@application.route('/export_emails')
+def export_emails():
+    # Collect all emails
+    all_users = database.get_user(connection=g.db)
+    emails = [u.get('email') for u in all_users]
+
+    # Create a CSV-like string
+    csv_content = "email\n" + "\n".join(emails)
+
+    # Send as a downloadable file
+    return Response(
+        csv_content,
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment; filename=users.csv"}
+    )
 
 
 @application.route('/manage_devices', methods=['GET'])

@@ -20,6 +20,10 @@
       <a href="/" class="nav_btn">Home</a>
     </nav>
 
+    <form method="get" action="{{ url_for('export_emails') }}">
+      <button type="submit" class="save_btn device_action_btn">Export Emails</button>
+    </form>
+
     <h1>Pending Users</h1>
 
     {% if unauthorized_users %}
