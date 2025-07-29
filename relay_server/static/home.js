@@ -38,11 +38,11 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   buttons.forEach(btn => {
-  let pressTimer = null;
-  let longPress = false;
+    let pressTimer = null;
+    let longPress = false;
 
-  const startPress = (event) => {
-    event.preventDefault(); // Prevent default to avoid triggering clicks after long press
+    const startPress = (event) => {
+    event.preventDefault(); // Prevent default behavior on touch
     longPress = false;
     pressTimer = setTimeout(() => {
       longPress = true;
@@ -52,29 +52,34 @@ document.addEventListener('DOMContentLoaded', function () {
       const url = `/?id=${id}&name=${encodeURIComponent(name)}`;
       window.open(url, '_blank');
     }, 1500);
-  };
+    };
 
-  const cancelPress = () => {
-    clearTimeout(pressTimer);
-  };
+    const cancelPress = () => {
+        clearTimeout(pressTimer);
+    };
 
-  // Desktop
-  btn.addEventListener('mousedown', startPress);
-  btn.addEventListener('mouseup', cancelPress);
-  btn.addEventListener('mouseleave', cancelPress);
+    // Mouse
+    btn.addEventListener('mousedown', startPress);
+    btn.addEventListener('mouseup', cancelPress);
+    btn.addEventListener('mouseleave', cancelPress);
 
-  // Touch devices
-  btn.addEventListener('touchstart', startPress, { passive: false });
-  btn.addEventListener('touchend', cancelPress);
-  btn.addEventListener('touchcancel', cancelPress);
+    // Touch
+    btn.addEventListener('touchstart', startPress, { passive: false });
+    btn.addEventListener('touchend', (e) => {
+        cancelPress();
+        if (!longPress) {
+          handleUnlock(btn); // ✅ This was missing
+        }
+    });
+    btn.addEventListener('touchcancel', cancelPress);
 
-  btn.addEventListener('click', (e) => {
+    // Desktop click
+    btn.addEventListener('click', (e) => {
     if (!longPress) {
       handleUnlock(btn);
     }
+    });
   });
-});
-
 
   // Trigger from URL if present
   const params = new URLSearchParams(window.location.search);
