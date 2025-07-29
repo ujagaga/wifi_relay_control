@@ -76,6 +76,27 @@ def epoch_to_iso(epoch: int) -> str:
     return datetime.fromtimestamp(epoch, tz=timezone.utc).isoformat()
 
 
+def rough_time_ago(seconds_ago: int) -> str:
+    minutes = seconds_ago // 60
+    hours = minutes // 60
+    days = hours // 24
+
+    if hours < 24:
+        return "today"
+    elif days == 1:
+        return "yesterday"
+    elif days < 7:
+        return f"{days} days ago"
+    elif days < 30:
+        weeks = days // 7
+        return f"{weeks} week{'s' if weeks > 1 else ''} ago"
+    elif days < 365:
+        months = days // 30
+        return f"{months} month{'s' if months > 1 else ''} ago"
+    else:
+        return "more than a year ago"
+
+
 '''
 Sends an email using configured credentials. 
 '''
