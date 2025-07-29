@@ -44,10 +44,10 @@ IS_LOCAL = False
 
 if IS_LOCAL:
     google = None
-else:
-    if os.path.isfile(CLIENT_SECRETS_FILE):
-        with open(CLIENT_SECRETS_FILE) as f:
-            client_secrets = json.load(f)['web']  # Assumes the JSON structure is under 'web'
+# else:
+#     if os.path.isfile(CLIENT_SECRETS_FILE):
+#         with open(CLIENT_SECRETS_FILE) as f:
+#             client_secrets = json.load(f)['web']  # Assumes the JSON structure is under 'web'
 
         # # Configure OAuth
         # oauth = OAuth(application)
@@ -170,19 +170,23 @@ def login():
     # Configure OAuth
     oauth = OAuth(application)
 
-    google = oauth.register(
-        name='google',
-        client_id=client_secrets['client_id'],
-        client_secret=client_secrets['client_secret'],
-        access_token_url=client_secrets['token_uri'],
-        access_token_params=None,
-        authorize_url=client_secrets['auth_uri'],
-        authorize_params=None,
-        api_base_url='https://www.googleapis.com/oauth2/v1/',
-        userinfo_endpoint='https://www.googleapis.com/oauth2/v3/userinfo',
-        client_kwargs={'scope': 'email'},
-        server_metadata_url='https://accounts.google.com/.well-known/openid-configuration'
-    )
+    if os.path.isfile(CLIENT_SECRETS_FILE):
+        with open(CLIENT_SECRETS_FILE) as f:
+            client_secrets = json.load(f)['web']
+
+        google = oauth.register(
+            name='google',
+            client_id=client_secrets['client_id'],
+            client_secret=client_secrets['client_secret'],
+            access_token_url=client_secrets['token_uri'],
+            access_token_params=None,
+            authorize_url=client_secrets['auth_uri'],
+            authorize_params=None,
+            api_base_url='https://www.googleapis.com/oauth2/v1/',
+            userinfo_endpoint='https://www.googleapis.com/oauth2/v3/userinfo',
+            client_kwargs={'scope': 'email'},
+            server_metadata_url='https://accounts.google.com/.well-known/openid-configuration'
+        )
 
     return render_template('signin.html', title=settings.APP_TITLE, url_for=safe_url_for)
 
