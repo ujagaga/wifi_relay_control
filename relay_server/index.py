@@ -49,22 +49,22 @@ else:
         with open(CLIENT_SECRETS_FILE) as f:
             client_secrets = json.load(f)['web']  # Assumes the JSON structure is under 'web'
 
-        # Configure OAuth
-        oauth = OAuth(application)
-
-        google = oauth.register(
-            name='google',
-            client_id=client_secrets['client_id'],
-            client_secret=client_secrets['client_secret'],
-            access_token_url=client_secrets['token_uri'],
-            access_token_params=None,
-            authorize_url=client_secrets['auth_uri'],
-            authorize_params=None,
-            api_base_url='https://www.googleapis.com/oauth2/v1/',
-            userinfo_endpoint='https://www.googleapis.com/oauth2/v3/userinfo',
-            client_kwargs={'scope': 'email'},
-            server_metadata_url='https://accounts.google.com/.well-known/openid-configuration'
-        )
+        # # Configure OAuth
+        # oauth = OAuth(application)
+        #
+        # google = oauth.register(
+        #     name='google',
+        #     client_id=client_secrets['client_id'],
+        #     client_secret=client_secrets['client_secret'],
+        #     access_token_url=client_secrets['token_uri'],
+        #     access_token_params=None,
+        #     authorize_url=client_secrets['auth_uri'],
+        #     authorize_params=None,
+        #     api_base_url='https://www.googleapis.com/oauth2/v1/',
+        #     userinfo_endpoint='https://www.googleapis.com/oauth2/v3/userinfo',
+        #     client_kwargs={'scope': 'email'},
+        #     server_metadata_url='https://accounts.google.com/.well-known/openid-configuration'
+        # )
 
 '''
 On a CGI hosting, the flasks url_for populates the url with script path,
@@ -149,6 +149,8 @@ def authorize():
 
 @application.route('/login', methods=['GET'])
 def login():
+    global google
+
     if IS_LOCAL:
         # Generate a fake authorized user token automatically
         token = helper.generate_token()
@@ -165,6 +167,23 @@ def login():
         response.set_cookie('token', token, max_age=settings.MAX_COOKIE_AGE, expires=time.time() + settings.MAX_COOKIE_AGE)
         return response
 
+    # Configure OAuth
+    oauth = OAuth(application)
+
+    google = oauth.register(
+        name='google',
+        client_id=client_secrets['client_id'],
+        client_secret=client_secrets['client_secret'],
+        access_token_url=client_secrets['token_uri'],
+        access_token_params=None,
+        authorize_url=client_secrets['auth_uri'],
+        authorize_params=None,
+        api_base_url='https://www.googleapis.com/oauth2/v1/',
+        userinfo_endpoint='https://www.googleapis.com/oauth2/v3/userinfo',
+        client_kwargs={'scope': 'email'},
+        server_metadata_url='https://accounts.google.com/.well-known/openid-configuration'
+    )
+
     return render_template('signin.html', title=settings.APP_TITLE, url_for=safe_url_for)
 
 
@@ -174,22 +193,30 @@ def oauth2callback():
         # Just redirect to index, since login is automatic in /login for local
         return redirect(safe_url_for('index'))
 
-    google.authorize_access_token()
-    resp = google.get('userinfo')
-    user_info = resp.json()
-    email = user_info["email"]
-    picture = user_info.get("picture")
+    try:
+        google.authorize_access_token()
+        resp = google.get('userinfo')
+        user_info = resp.json()
+        email = user_info["email"]
+        picture = user_info.get("picture")
 
-    user = database.get_user(connection=g.db, email=email)
-    if not user:
-        # Redirect to complete_registration
-        return redirect(safe_url_for('complete_registration', email=email))
+        user = database.get_user(connection=g.db, email=email)
+        if not user:
+            # Redirect to complete_registration
+            return redirect(safe_url_for('complete_registration', email=email))
 
-    token = helper.generate_token()
-    database.update_user(connection=g.db, email=email, token=token, picture=picture)
+        token = helper.generate_token()
+        database.update_user(connection=g.db, email=email, token=token, picture=picture)
 
-    response = make_response(redirect(safe_url_for('index')))
-    response.set_cookie('token', token, max_age=settings.MAX_COOKIE_AGE, expires=time.time() + settings.MAX_COOKIE_AGE)
+        response = make_response(redirect(safe_url_for('index')))
+        response.set_cookie('token', token, max_age=settings.MAX_COOKIE_AGE, expires=time.time() + settings.MAX_COOKIE_AGE)
+
+    except Exception as e:
+        logger.exception(f"OAuth2 callback error {e}")
+        # Restart the login flow
+        response = redirect(safe_url_for("login"))
+        response.set_cookie('token', 'None', expires=0)
+
     return response
 
 
@@ -326,10 +353,13 @@ def manage_users():
         return redirect(safe_url_for('index'))
 
     unauthorized_users = database.get_user(connection=g.db, authorized=0)
+
     authorized_users = (
         database.get_user(connection=g.db, authorized=1)
         + database.get_user(connection=g.db, authorized=2)
     )
+
+    print("USERS:", authorized_users)
 
     # ✅ Sort: put current user last, others alphabetical by email
     authorized_users_sorted = sorted(
@@ -342,6 +372,8 @@ def manage_users():
         unauthorized_users,
         key=lambda u: u["email"].lower()
     )
+
+
 
     return render_template(
         'manage_users.html',

@@ -33,15 +33,6 @@ def init_database(connection):
            """
         cursor.execute(sql)
         connection.commit()
-    else:
-        # add_last_seen_column(connection):
-        cursor.execute("PRAGMA table_info(users);")
-        columns = [row[1] for row in cursor.fetchall()]
-        if "last_seen" not in columns:
-            cursor.execute("ALTER TABLE users ADD COLUMN last_seen TEXT;")
-            connection.commit()
-        cursor.close()
-
 
     if not check_table_exists(connection, "devices"):
         sql = """
@@ -135,12 +126,15 @@ def get_user(connection, email: str = None, token: str = None, authorized: int =
                     row_dict["picture"] = "/static/blank_user.png"
 
                 if row_dict.get("last_seen"):
+
                     try:
                         epoch = helper.iso_to_epoch(row_dict["last_seen"])
                         seconds_ago = int(time.time()) - epoch
                         row_dict["last_seen"] = helper.rough_time_ago(seconds_ago)
                     except:
                         row_dict["last_seen"] = "unknown"
+                else:
+                    row_dict["last_seen"] = "never"
 
                 user.append(row_dict)
 
