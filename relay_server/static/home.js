@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', function () {
   document.querySelectorAll('.ping_time').forEach(span => {
     const iso = span.dataset.iso;
     if (iso) {
-      const localTime = new Date(iso).toLocaleString(); // formatted for user's locale
+      const localTime = new Date(iso).toLocaleString();
       span.textContent = `${localTime}`;
     }
   });
@@ -35,62 +35,63 @@ document.addEventListener('DOMContentLoaded', function () {
           buttons.forEach(b => b.classList.remove('disabled'));
         }, 1000);
       });
-    }
+  }
 
   buttons.forEach(btn => {
     let pressTimer = null;
     let longPress = false;
+    let hasMoved = false;
 
     const startPress = (event) => {
-    event.preventDefault(); // Prevent default behavior on touch
-    longPress = false;
-    pressTimer = setTimeout(() => {
-      longPress = true;
-      const row = btn.closest('.row');
-      const id = btn.dataset.id;
-      const name = row.dataset.deviceName;
-      const url = `/?id=${id}&name=${encodeURIComponent(name)}`;
-      window.open(url, '_blank');
-    }, 1500);
+      longPress = false;
+      hasMoved = false;
+      pressTimer = setTimeout(() => {
+        longPress = true;
+        const row = btn.closest('.row');
+        const id = btn.dataset.id;
+        const name = row.dataset.deviceName;
+        const url = `/?id=${id}&name=${encodeURIComponent(name)}`;
+        window.open(url, '_blank');
+      }, 800); // faster long-press
     };
 
     const cancelPress = () => {
-        clearTimeout(pressTimer);
+      clearTimeout(pressTimer);
     };
 
-    // Mouse
+    // Mouse events
     btn.addEventListener('mousedown', startPress);
-    btn.addEventListener('mouseup', cancelPress);
+    btn.addEventListener('mouseup', () => {
+      if (!longPress) handleUnlock(btn);
+      cancelPress();
+    });
     btn.addEventListener('mouseleave', cancelPress);
 
-    // Touch
-    let touchMoved = false;
-
+    // Touch events
     btn.addEventListener('touchstart', (e) => {
-      touchMoved = false;
+      hasMoved = false;
       startPress(e);
-    }, { passive: false });
+    }, { passive: true });
 
     btn.addEventListener('touchmove', () => {
-      touchMoved = true;
+      hasMoved = true;
+      cancelPress();
     });
 
     btn.addEventListener('touchend', (e) => {
-      cancelPress();
-      if (!longPress && !touchMoved) {
-        e.preventDefault(); // may help on some devices
+      if (!longPress && !hasMoved) {
         handleUnlock(btn);
       }
-    }, { passive: false });
+      cancelPress();
+    });
 
     btn.addEventListener('touchcancel', cancelPress);
 
-
-    // Desktop click
+    // Prevent default click behavior only if touchstart was detected
     btn.addEventListener('click', (e) => {
-    if (!longPress) {
-      handleUnlock(btn);
-    }
+      if (!longPress) {
+        handleUnlock(btn);
+      }
     });
   });
 
@@ -110,8 +111,9 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
+  // Modal for apartment number edit
   document.querySelectorAll('.edit-apartment-link').forEach(link => {
-    link.addEventListener('click', function(e) {
+    link.addEventListener('click', function (e) {
       e.preventDefault();
       const email = this.dataset.email;
       const apartment = this.dataset.apartment;
@@ -122,14 +124,14 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
-  document.querySelector('.modal .close').addEventListener('click', function() {
+  document.querySelector('.modal .close').addEventListener('click', function () {
     document.getElementById('apartmentModal').style.display = 'none';
   });
 
-  window.onclick = function(event) {
+  window.addEventListener('click', function (event) {
     const modal = document.getElementById('apartmentModal');
-    if (event.target == modal) {
-      modal.style.display = "none";
+    if (event.target === modal) {
+      modal.style.display = 'none';
     }
-  }
+  });
 });
