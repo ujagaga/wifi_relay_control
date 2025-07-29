@@ -38,36 +38,32 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   buttons.forEach(btn => {
-      let pressTimer = null;
-      let longPress = false;
+    let pressStart = 0;
 
-      const startPress = () => {
-        longPress = false;
-        pressTimer = setTimeout(() => {
-          longPress = true;
-          const row = btn.closest('.row');
-          const id = btn.dataset.id;
-          const name = row.dataset.deviceName;
+    btn.addEventListener('pointerdown', () => {
+        pressStart = Date.now();
+    }, { passive: false });
+
+     btn.addEventListener('pointerup', () => {
+        const pressDuration = Date.now() - pressStart;
+        const row = btn.closest('.row');
+        const id = btn.dataset.id;
+        const name = row.dataset.deviceName;
+
+        if (pressDuration >= 800) {
+          // Long press: open new tab
           const url = `/?id=${id}&name=${encodeURIComponent(name)}`;
           window.open(url, '_blank');
-        }, 800);
-      };
+        } else {
+          // Short press: handle unlock
+          handleUnlock(btn);
+        }
+      }, { passive: false });
 
-      const cancelPress = () => {
-        clearTimeout(pressTimer);
-      };
-
-      btn.addEventListener('pointerdown', startPress, { passive: false });
-        btn.addEventListener('pointerup', () => {
-          cancelPress();
-          if (!longPress) {
-            handleUnlock(btn);
-          }
-        }, { passive: false });
-        btn.addEventListener('pointerleave', cancelPress, { passive: false });
-        btn.addEventListener('pointercancel', cancelPress, { passive: false });
-
+      btn.addEventListener('pointerleave', () => { pressStart = 0; }, { passive: false });
+      btn.addEventListener('pointercancel', () => { pressStart = 0; }, { passive: false });
     });
+
 
 
   // Trigger from URL if present
