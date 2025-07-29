@@ -9,6 +9,8 @@
   <title>{{ title }} - Users</title>
   <link rel="icon" type="image/x-icon" href="static/favicon.ico">
   <link rel="stylesheet" href="static/home.css"/>
+  <link rel="stylesheet" href="static/css/fontawesome.min.css" />
+  <link rel="stylesheet" href="static/css/solid.min.css" />
 </head>
 <body>
   <div class="container">
@@ -70,7 +72,11 @@
             <img src="{{ a.picture }}" alt="User picture" class="user_picture">
             <div class="user_text_info">
               <p><strong>Email:</strong> {{ a.email }}</p>
-              <p><strong>Apartment:</strong> {{ a.apartment }}</p>
+              <p><strong>Apartment:</strong> {{ a.apartment }}
+                <a href="#" class="edit-apartment-link" data-email="{{ a.email }}" data-apartment="{{ a.apartment }}">
+                  <i class="fa-solid fa-pen"></i>
+                </a>
+              </p>
               <p><strong>Role:</strong> {% if a.authorized > 1 %}Admin{% else %}User{% endif %}</p>
               <p><strong>Last seen:</strong> {{ a.last_seen }}</p>
             </div>
@@ -104,6 +110,21 @@
       <p>No authorized users.</p>
     {% endif %}
   </div>
+
+  <div id="apartmentModal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <form method="post" action="{{ url_for('manage_users_post') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="email" id="modal-email">
+        <input type="hidden" name="action" value="update_apartment">
+        <label for="modal-apartment">New Apartment:</label>
+        <input type="text" name="apartment" id="modal-apartment" required>
+        <button type="submit" class="save_btn device_action_btn">Save</button>
+      </form>
+    </div>
+  </div>
+
 </body>
 <script src="static/home.js"></script>
 </html>

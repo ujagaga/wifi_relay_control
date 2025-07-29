@@ -321,3 +321,28 @@ h1 {
   font-size: 0.9em;
 }
 
+.modal {
+    position: fixed;
+    z-index: 9999;
+    left: 0; top: 0; width: 100%; height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 10% auto;
+    padding: 20px;
+    border-radius: 8px;
+    width: 300px;
+}
+
+.close {
+    float: right;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+.edit-apartment-link{
+    padding-left: 1rem;
+}

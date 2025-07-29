@@ -96,4 +96,27 @@ document.addEventListener('DOMContentLoaded', function () {
       handleUnlock(match);
     }
   }
+
+  document.querySelectorAll('.edit-apartment-link').forEach(link => {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      const email = this.dataset.email;
+      const apartment = this.dataset.apartment;
+
+      document.getElementById('modal-email').value = email;
+      document.getElementById('modal-apartment').value = apartment;
+      document.getElementById('apartmentModal').style.display = 'block';
+    });
+  });
+
+  document.querySelector('.modal .close').addEventListener('click', function() {
+    document.getElementById('apartmentModal').style.display = 'none';
+  });
+
+  window.onclick = function(event) {
+    const modal = document.getElementById('apartmentModal');
+    if (event.target == modal) {
+      modal.style.display = "none";
+    }
+  }
 });

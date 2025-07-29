@@ -147,7 +147,7 @@ def get_user(connection, email: str = None, token: str = None, authorized: int =
     return user
 
 
-def update_user(connection, email: str, token: str = None, authorized: int = None, picture:str = None):
+def update_user(connection, email: str, token: str = None, authorized: int = None, picture:str = None, apartment = None):
     user = get_user(connection, email=email)
 
     if user:
@@ -157,9 +157,11 @@ def update_user(connection, email: str, token: str = None, authorized: int = Non
             user["authorized"] = authorized
         if picture is not None:
             user["picture"] = picture
+        if apartment is not None:
+            user["apartment"] = apartment
 
-        sql = "UPDATE users SET token = ?, authorized = ?, picture = ? WHERE email = ?;"
-        params = (user["token"], user["authorized"], user["picture"], email)
+        sql = "UPDATE users SET token = ?, authorized = ?, picture = ?, apartment = ? WHERE email = ?;"
+        params = (user["token"], user["authorized"], user["picture"], user["apartment"], email)
 
         try:
             connection.execute(sql, params)

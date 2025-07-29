@@ -416,6 +416,11 @@ def manage_users_post():
     elif action == 'make_admin':
         database.update_user(connection=g.db, email=email, authorized=2)
 
+    elif action == 'update_apartment':
+        apartment = request.form.get('apartment')
+        if apartment:
+            database.update_user(connection=g.db, email=email, apartment=apartment)
+
     return redirect(safe_url_for('manage_users'))
 
 
