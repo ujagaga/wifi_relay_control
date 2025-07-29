@@ -296,10 +296,11 @@ def unlock():
         return jsonify({"error": "unauthorized"}), 401
 
     main_device = database.get_device(connection=g.db, name="main")
-    all_devices = database.get_device(connection=g.db)
-    if all_devices:
-        for device in all_devices:
-            if device["name"] == device_name or main_device:
+    connected_devices = get_connected_devices(g.db)
+
+    if connected_devices:
+        for device in connected_devices:
+            if main_device or device["name"] == device_name:
                 mqtt_message = json.dumps({
                     "host": device["name"],
                     "command": "trigger",
