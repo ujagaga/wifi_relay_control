@@ -473,13 +473,13 @@ def export_emails():
     emails = [u.get('email') for u in all_users]
 
     # Create a CSV-like string
-    csv_content = "email\n" + "\n".join(emails)
+    csv_content = ",".join(emails)
 
     # Send as a downloadable file
     return Response(
         csv_content,
         mimetype="text/csv",
-        headers={"Content-Disposition": "attachment; filename=users.csv"}
+        headers={"Content-Disposition": "attachment; filename=email.txt"}
     )
 
 
