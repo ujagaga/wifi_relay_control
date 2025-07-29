@@ -4,7 +4,6 @@ from hashlib import sha256
 import sys
 import settings
 from datetime import datetime, timezone
-import threading
 import paho.mqtt.publish as publish
 import logging
 import smtplib
@@ -53,18 +52,15 @@ def to_int(number, default = 0):
 
 
 def publish_mqtt_message(message):
-    def worker():
-        publish.single(
-            topic=settings.MQTT_TOPIC,
-            payload=message,
-            hostname=settings.MQTT_BROKER,
-            port=settings.MQTT_PORT,
-            auth={'username': settings.MQTT_USER, 'password': settings.MQTT_PASS},
-            keepalive=60
-        )
-        logger.info(f"Published MQTT message: {message}")
-
-    threading.Thread(target=worker).start()
+    publish.single(
+        topic=settings.MQTT_TOPIC,
+        payload=message,
+        hostname=settings.MQTT_BROKER,
+        port=settings.MQTT_PORT,
+        auth={'username': settings.MQTT_USER, 'password': settings.MQTT_PASS},
+        keepalive=60
+    )
+    logger.info(f"Published MQTT message: {message}")
 
 
 def iso_to_epoch(iso_str: str) -> int:
