@@ -79,7 +79,7 @@ def safe_url_for(endpoint, **values):
     return url
 
 
-def get_connected_devices(connection):
+def get_connected_devices_for_index(connection):
     connected_devices = []
 
     main_device = database.get_device(connection=connection, name="main")
@@ -126,6 +126,7 @@ def get_connected_devices(connection):
                             "restarted_at": restarted_at,
                             "reset_at": reset_at
                         })
+
 
     return connected_devices
 
@@ -227,7 +228,7 @@ def index():
     if not user:
         return redirect(safe_url_for('login'))
 
-    connected_devices = get_connected_devices(g.db)
+    connected_devices = get_connected_devices_for_index(g.db)
 
     unauthorized_users = database.get_user(connection=g.db, authorized=0)
     return render_template('home.html',
@@ -320,18 +321,27 @@ def unlock():
         return jsonify({"error": "unauthorized"}), 401
 
     main_device = database.get_device(connection=g.db, name="main")
-    connected_devices = get_connected_devices(g.db)
+    if main_device:
+        # Get all authorized devices
+        connected_devices = database.get_device(connection=g.db, authorized=1)
+    else:
+        # Get only the requested device
+        connected_devices = [database.get_device(connection=g.db, authorized=1, name=device_name)]
 
     if connected_devices:
+        dev_found = False
         for device in connected_devices:
-            if device["name"] == device_name or main_device:
+            if device["name"] != "main":
                 mqtt_message = json.dumps({
                     "host": device["name"],
                     "command": "trigger",
                     "relay_id": relay_index
                 })
                 helper.publish_mqtt_message(mqtt_message)
-                return jsonify({"status": "ok"}), 200
+                dev_found = True
+
+        if dev_found:
+            return jsonify({"status": "ok"}), 200
 
     return jsonify({"error": "device not found"}), 404
 
