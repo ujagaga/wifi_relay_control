@@ -44,27 +44,27 @@ IS_LOCAL = False
 
 if IS_LOCAL:
     google = None
-# else:
-#     if os.path.isfile(CLIENT_SECRETS_FILE):
-#         with open(CLIENT_SECRETS_FILE) as f:
-#             client_secrets = json.load(f)['web']  # Assumes the JSON structure is under 'web'
+else:
+    if os.path.isfile(CLIENT_SECRETS_FILE):
+        with open(CLIENT_SECRETS_FILE) as f:
+            client_secrets = json.load(f)['web']  # Assumes the JSON structure is under 'web'
 
-        # # Configure OAuth
-        # oauth = OAuth(application)
-        #
-        # google = oauth.register(
-        #     name='google',
-        #     client_id=client_secrets['client_id'],
-        #     client_secret=client_secrets['client_secret'],
-        #     access_token_url=client_secrets['token_uri'],
-        #     access_token_params=None,
-        #     authorize_url=client_secrets['auth_uri'],
-        #     authorize_params=None,
-        #     api_base_url='https://www.googleapis.com/oauth2/v1/',
-        #     userinfo_endpoint='https://www.googleapis.com/oauth2/v3/userinfo',
-        #     client_kwargs={'scope': 'email'},
-        #     server_metadata_url='https://accounts.google.com/.well-known/openid-configuration'
-        # )
+        # Configure OAuth
+        oauth = OAuth(application)
+
+        google = oauth.register(
+            name='google',
+            client_id=client_secrets['client_id'],
+            client_secret=client_secrets['client_secret'],
+            access_token_url=client_secrets['token_uri'],
+            access_token_params=None,
+            authorize_url=client_secrets['auth_uri'],
+            authorize_params=None,
+            api_base_url='https://www.googleapis.com/oauth2/v1/',
+            userinfo_endpoint='https://www.googleapis.com/oauth2/v3/userinfo',
+            client_kwargs={'scope': 'email'},
+            server_metadata_url='https://accounts.google.com/.well-known/openid-configuration'
+        )
 
 '''
 On a CGI hosting, the flasks url_for populates the url with script path,
@@ -149,8 +149,6 @@ def authorize():
 
 @application.route('/login', methods=['GET'])
 def login():
-    global google
-
     if IS_LOCAL:
         # Generate a fake authorized user token automatically
         token = helper.generate_token()
@@ -167,32 +165,13 @@ def login():
         response.set_cookie('token', token, max_age=settings.MAX_COOKIE_AGE, expires=time.time() + settings.MAX_COOKIE_AGE)
         return response
 
-    # Configure OAuth
-    oauth = OAuth(application)
-
-    if os.path.isfile(CLIENT_SECRETS_FILE):
-        with open(CLIENT_SECRETS_FILE) as f:
-            client_secrets = json.load(f)['web']
-
-        google = oauth.register(
-            name='google',
-            client_id=client_secrets['client_id'],
-            client_secret=client_secrets['client_secret'],
-            access_token_url=client_secrets['token_uri'],
-            access_token_params=None,
-            authorize_url=client_secrets['auth_uri'],
-            authorize_params=None,
-            api_base_url='https://www.googleapis.com/oauth2/v1/',
-            userinfo_endpoint='https://www.googleapis.com/oauth2/v3/userinfo',
-            client_kwargs={'scope': 'email'},
-            server_metadata_url='https://accounts.google.com/.well-known/openid-configuration'
-        )
-
     return render_template('signin.html', title=settings.APP_TITLE, url_for=safe_url_for)
 
 
 @application.route('/oauth2callback')
 def oauth2callback():
+    global google
+
     if IS_LOCAL:
         # Just redirect to index, since login is automatic in /login for local
         return redirect(safe_url_for('index'))
@@ -218,6 +197,20 @@ def oauth2callback():
     except Exception as e:
         logger.exception(f"OAuth2 callback error {e}")
         # Restart the login flow
+        google = oauth.register(
+            name='google',
+            client_id=client_secrets['client_id'],
+            client_secret=client_secrets['client_secret'],
+            access_token_url=client_secrets['token_uri'],
+            access_token_params=None,
+            authorize_url=client_secrets['auth_uri'],
+            authorize_params=None,
+            api_base_url='https://www.googleapis.com/oauth2/v1/',
+            userinfo_endpoint='https://www.googleapis.com/oauth2/v3/userinfo',
+            client_kwargs={'scope': 'email'},
+            server_metadata_url='https://accounts.google.com/.well-known/openid-configuration'
+        )
+
         response = redirect(safe_url_for("login"))
         response.set_cookie('token', 'None', expires=0)
 
