@@ -40,6 +40,11 @@ html, body {
   cursor: not-allowed;
 }
 
+.big_btn.active {
+  background-color: #00c853; /* Green flash */
+  transition: background-color 0.3s ease;
+}
+
 .nav_btn{
     color: white;
     display: inline-block;
@@ -346,3 +351,5 @@ h1 {
 .edit-apartment-link{
     padding-left: 1rem;
 }
+
+

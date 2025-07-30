@@ -45,23 +45,15 @@
           <h1>{{ device["label"] }}</h1>
           <div class="row {% if device['sw_count'] == 1 %}single{% endif %}" data-device-name="{{ device['name'] }}">
 
-            <div class="big_btn" data-id="0">
-              <i class="fa-solid fa-lock-open"></i>
-            </div>
+            <a class="big_btn" data-id="0"><i class="fa-solid fa-lock-open"></i></a>
             {% if device["sw_count"] > 1 %}
-            <div class="big_btn" data-id="1">
-              <i class="fa-solid fa-lock"></i>
-            </div>
+            <a class="big_btn" data-id="1"><i class="fa-solid fa-lock"></i></a>
             {% endif %}
             {% if device["sw_count"] > 2 %}
-            <div class="big_btn" data-id="2">
-              <i class="fa-solid fa-unlock"></i>
-            </div>
+            <a class="big_btn" data-id="2"><i class="fa-solid fa-unlock"></i></a>
             {% endif %}
             {% if device["sw_count"] > 3 %}
-            <div class="big_btn" data-id="3">
-              <i class="fa-solid fa-hand"></i>
-            </div>
+            <a class="big_btn" data-id="3"><i class="fa-solid fa-hand"></i></a>
             {% endif %}
           </div>
           <div class="progress-bar-container"></div>

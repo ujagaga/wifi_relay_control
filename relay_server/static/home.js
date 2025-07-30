@@ -1,101 +1,47 @@
 document.addEventListener('DOMContentLoaded', function () {
-  const buttons = document.querySelectorAll('.big_btn');
+  const rows = document.querySelectorAll('.row');
 
-  document.querySelectorAll('.ping_time').forEach(span => {
-    const iso = span.dataset.iso;
-    if (iso) {
-      const localTime = new Date(iso).toLocaleString();
-      span.textContent = `${localTime}`;
-    }
+  rows.forEach(row => {
+    const deviceName = row.dataset.deviceName;
+    const buttons = row.querySelectorAll('.big_btn');
+
+    buttons.forEach(btn => {
+      const btnId = btn.dataset.id;
+      const timestamp = Date.now();
+      const href = `/?name=${encodeURIComponent(deviceName)}&id=${btnId}&ts=${timestamp}`;
+      btn.setAttribute('href', href);
+    });
   });
 
-  function handleUnlock(button) {
-    const row = button.closest('.row');
-    const container = row.nextElementSibling;
-    const id = button.dataset.id;
-    const name = row.dataset.deviceName;
+  // Helper: Get query parameter from URL
+  function getQueryParam(name) {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(name);
+  }
 
-    container.innerHTML = '';
+  // Trigger button action if name and id are present in URL
+  const name = getQueryParam('name');
+  const id = getQueryParam('id');
 
-    const bar = document.createElement('div');
-    bar.className = 'progress-bar';
-    container.appendChild(bar);
+  if (name !== null && id !== null) {
+    // Add visual feedback (optional)
+    const matchingButton = document.querySelector(`.row[data-device-name="${name}"] .big_btn[data-id="${id}"]`);
+    if (matchingButton) {
+      matchingButton.classList.add('active'); // CSS can style this if needed
+      setTimeout(() => matchingButton.classList.remove('active'), 500);
+    }
 
-    buttons.forEach(b => b.classList.add('disabled'));
-
-    requestAnimationFrame(() => {
-      bar.style.width = '100%';
-    });
-
-    const timestamp = Date.now();
-    fetch(`/unlock?id=${id}&name=${encodeURIComponent(name)}&ts=${timestamp}`)
-      .finally(() => {
-        setTimeout(() => {
-          container.innerHTML = '';
-          buttons.forEach(b => b.classList.remove('disabled'));
-        }, 1000);
+    // Make the unlock request
+    fetch(`/unlock?id=${encodeURIComponent(id)}&name=${encodeURIComponent(name)}`)
+      .then(response => {
+        if (!response.ok) throw new Error("Network error");
+        return response.text();
+      })
+      .then(result => {
+        console.log("Action completed:", result);
+      })
+      .catch(error => {
+        console.error("Action failed:", error);
       });
   }
-
- buttons.forEach(btn => {
-  const row = btn.closest('.row');
-  const id = btn.dataset.id;
-  const name = row.dataset.deviceName;
-
-  // Short press: regular click
-  btn.addEventListener('click', (e) => {
-    e.preventDefault(); // prevent default behavior just in case
-    handleUnlock(btn);
-  });
-
-  // Long press: contextmenu event
-  btn.addEventListener('contextmenu', (e) => {
-    e.preventDefault(); // stop the right-click menu
-    const url = `/?id=${id}&name=${encodeURIComponent(name)}`;
-    window.open(url, '_blank');
-  });
-});
-
-
-
-
-  // Trigger from URL if present
-  const params = new URLSearchParams(window.location.search);
-  const autoId = params.get('id');
-  const autoName = params.get('name');
-
-  if (autoId && autoName) {
-    const match = Array.from(buttons).find(btn => {
-      const row = btn.closest('.row');
-      return btn.dataset.id === autoId && row?.dataset.deviceName === autoName;
-    });
-
-    if (match) {
-      handleUnlock(match);
-    }
-  }
-
-  // Modal for apartment number edit
-  document.querySelectorAll('.edit-apartment-link').forEach(link => {
-    link.addEventListener('click', function (e) {
-      e.preventDefault();
-      const email = this.dataset.email;
-      const apartment = this.dataset.apartment;
-
-      document.getElementById('modal-email').value = email;
-      document.getElementById('modal-apartment').value = apartment;
-      document.getElementById('apartmentModal').style.display = 'block';
-    });
-  });
-
-  document.querySelector('.modal .close').addEventListener('click', function () {
-    document.getElementById('apartmentModal').style.display = 'none';
-  });
-
-  window.addEventListener('click', function (event) {
-    const modal = document.getElementById('apartmentModal');
-    if (event.target === modal) {
-      modal.style.display = 'none';
-    }
-  });
 });
