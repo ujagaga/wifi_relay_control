@@ -8,7 +8,7 @@
   <meta http-equiv="Expires" content="0" />
   <title>{{ title }}</title>
   <link rel="icon" type="image/x-icon" href="static/favicon.ico">
-  <link rel="stylesheet" href="static/index.css" />
+  <link rel="stylesheet" href="static/home.css" />
   <link rel="stylesheet" href="static/css/fontawesome.min.css" />
   <link rel="stylesheet" href="static/css/solid.min.css" />
 </head>
@@ -40,28 +40,21 @@
         {% endwith %}
       </div>
 
+
       {% if connected_devices %}
         {% for device in connected_devices %}
           <h1>{{ device["label"] }}</h1>
           <div class="row {% if device['sw_count'] == 1 %}single{% endif %}" data-device-name="{{ device['name'] }}">
 
-            <div class="big_btn" data-id="0">
-              <i class="fa-solid fa-lock-open"></i>
-            </div>
+            <a class="big_btn" data-id="0"><i class="fa-solid fa-lock-open"></i></a>
             {% if device["sw_count"] > 1 %}
-            <div class="big_btn" data-id="1">
-              <i class="fa-solid fa-lock"></i>
-            </div>
+            <a class="big_btn" data-id="1"><i class="fa-solid fa-lock"></i></a>
             {% endif %}
             {% if device["sw_count"] > 2 %}
-            <div class="big_btn" data-id="2">
-              <i class="fa-solid fa-unlock"></i>
-            </div>
+            <a class="big_btn" data-id="2"><i class="fa-solid fa-unlock"></i></a>
             {% endif %}
             {% if device["sw_count"] > 3 %}
-            <div class="big_btn" data-id="3">
-              <i class="fa-solid fa-hand"></i>
-            </div>
+            <a class="big_btn" data-id="3"><i class="fa-solid fa-hand"></i></a>
             {% endif %}
           </div>
           <div class="progress-bar-container"></div>
@@ -76,6 +69,6 @@
       <a href="https://github.com/ujagaga/wifi_relay_control" target="_blank">Documentation</a>
     </footer>
   </div>
-  <script src="static/index.js"></script>
+  <script src="static/home.js"></script>
 </body>
 </html>

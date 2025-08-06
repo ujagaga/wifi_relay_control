@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }} - Registration</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}">
+</head>
+<body>
+<div class="container">
+    <h2>Registration</h2>
+    <p>You are not a registered user. If you live in our building, please register.</p>
+
+    <form method="post" action="{{ url_for('complete_registration') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="email" value="{{ email }}">
+
+        <div class="row">
+            <label for="apartment">Apartment Number:</label>
+        </div>
+        <div class="row">
+            <input type="text" name="apartment" id="apartment" required style="width: 100%; padding: 0.5rem; font-size: 1rem;">
+        </div>
+
+        <div class="row" style="margin-top: 1rem;">
+            <label for="comment">Comment (optional):</label>
+        </div>
+        <div class="row">
+            <textarea name="comment" id="comment" rows="4" style="width: 100%; padding: 0.5rem; font-size: 1rem;"></textarea>
+        </div>
+
+        <div class="row single" style="margin-top: 1.5rem;">
+            <button type="submit" class="nav_btn">Submit</button>
+        </div>
+    </form>
+</div>
+</body>
+</html>

@@ -4,7 +4,7 @@
 '''
 pip install flask authlib paho-mqtt flask-wtf requests
 '''
-from flask import Flask, g, render_template, request, flash, redirect, make_response
+from flask import Flask, g, render_template, request, flash, redirect, make_response, Response
 from flask import url_for as flask_url_for
 import time
 import json
@@ -20,10 +20,11 @@ from datetime import datetime, timezone
 from flask_wtf import CSRFProtect
 from flask import jsonify
 
+# TODO: add family house mode, fix admin@vm120.in.rs mail send
 
 sys.path.insert(0, os.path.dirname(__file__))
 
-logging.basicConfig(handlers=[RotatingFileHandler(os.path.join(os.path.dirname(__file__),'app.log'), maxBytes=10000, backupCount=1)],
+logging.basicConfig(handlers=[RotatingFileHandler(os.path.join(os.path.dirname(__file__),'app.log'), maxBytes=65535, backupCount=1)],
         level=logging.DEBUG,
         format="[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s",
         datefmt='%Y-%m-%dT%H:%M:%S')
@@ -79,7 +80,7 @@ def safe_url_for(endpoint, **values):
     return url
 
 
-def get_connected_devices(connection):
+def get_connected_devices_for_index(connection):
     connected_devices = []
 
     main_device = database.get_device(connection=connection, name="main")
@@ -127,6 +128,7 @@ def get_connected_devices(connection):
                             "reset_at": reset_at
                         })
 
+
     return connected_devices
 
 
@@ -157,7 +159,7 @@ def login():
         user_email = "local@localhost"
         user = database.get_user(connection=g.db, email=user_email)
         if not user:
-            database.add_user(connection=g.db, email=user_email)
+            database.add_user(connection=g.db, email=user_email, apartment='0', token=token )
             user = database.get_user(connection=g.db, email=user_email)
         database.update_user(connection=g.db, email=user_email, token=token, authorized=2)
 
@@ -165,37 +167,66 @@ def login():
         response.set_cookie('token', token, max_age=settings.MAX_COOKIE_AGE, expires=time.time() + settings.MAX_COOKIE_AGE)
         return response
 
-    return render_template('login.html', title=settings.APP_TITLE, url_for=safe_url_for)
+    return render_template('signin.html', title=settings.APP_TITLE, url_for=safe_url_for)
 
 
 @application.route('/oauth2callback')
 def oauth2callback():
+    global google
+
     if IS_LOCAL:
         # Just redirect to index, since login is automatic in /login for local
         return redirect(safe_url_for('index'))
 
-    google.authorize_access_token()
-    resp = google.get('userinfo')
-    user_info = resp.json()
-    email = user_info["email"]
-    picture = user_info.get("picture")
+    try:
+        google.authorize_access_token()
+        resp = google.get('userinfo')
+        user_info = resp.json()
+        email = user_info["email"]
+        picture = user_info.get("picture")
 
-    user = database.get_user(connection=g.db, email=email)
+        token = helper.generate_token()
 
-    unauthorized_users = database.get_user(connection=g.db, authorized=False)
-    if not user and (not unauthorized_users or (unauthorized_users and len(unauthorized_users) < 50)):
-        database.add_user(connection=g.db, email=email)
         user = database.get_user(connection=g.db, email=email)
+        if not user:
+            if settings.APARTMENT_BUILDING_MODE:
+                # Ask user to enter apartment number
+                return redirect(safe_url_for('complete_registration', email=email))
+            else:
+                # Add as pending with default values
+                database.add_user(connection=g.db, email=email, token=token, apartment="?")
+                user = database.get_user(connection=g.db, email=email)
 
-    if not user or user['authorized'] < 1:
-        flash('You are not authorized to access this app. Please contact the administrator: ujagaga@gmail.com')
-        return redirect(safe_url_for('login'))
+        database.update_user(connection=g.db, email=email, token=token, picture=picture)
 
-    token = helper.generate_token()
-    database.update_user(connection=g.db, email=email, token=token, picture=picture)
+        if user.get("authorized") > 0:
+            response = make_response(redirect(safe_url_for('index')))
+            response.set_cookie('token', token, max_age=settings.MAX_COOKIE_AGE, expires=time.time() + settings.MAX_COOKIE_AGE)
+        else:
+            flash("Your account has not been authorized yet.")
+            response = redirect(safe_url_for("login"))
+            response.set_cookie('token', 'None', expires=0)
 
-    response = make_response(redirect(safe_url_for('index')))
-    response.set_cookie('token', token, max_age=settings.MAX_COOKIE_AGE, expires=time.time() + settings.MAX_COOKIE_AGE)
+    except Exception as e:
+        logger.exception(f"OAuth2 callback error {e}")
+        # Restart the login flow
+        google = oauth.register(
+            name='google',
+            client_id=client_secrets['client_id'],
+            client_secret=client_secrets['client_secret'],
+            access_token_url=client_secrets['token_uri'],
+            access_token_params=None,
+            authorize_url=client_secrets['auth_uri'],
+            authorize_params=None,
+            api_base_url='https://www.googleapis.com/oauth2/v1/',
+            userinfo_endpoint='https://www.googleapis.com/oauth2/v3/userinfo',
+            client_kwargs={'scope': 'email'},
+            server_metadata_url='https://accounts.google.com/.well-known/openid-configuration'
+        )
+
+        response = redirect(safe_url_for("login"))
+        response.set_cookie('token', 'None', expires=0)
+
     return response
 
 
@@ -209,10 +240,10 @@ def index():
     if not user:
         return redirect(safe_url_for('login'))
 
-    connected_devices = get_connected_devices(g.db)
+    connected_devices = get_connected_devices_for_index(g.db)
 
     unauthorized_users = database.get_user(connection=g.db, authorized=0)
-    return render_template('index.html',
+    return render_template('home.html',
                            connected_devices=connected_devices,
                            admin=user.get("authorized", 0) > 1,
                            unauthorized_users=unauthorized_users,
@@ -294,22 +325,35 @@ def unlock():
     if not token:
         return jsonify({"error": "unauthorized"}), 401
 
+    if not device_name:
+        return redirect(safe_url_for('index'))
+
     user = database.get_user(connection=g.db, token=token)
     if not user:
         return jsonify({"error": "unauthorized"}), 401
 
     main_device = database.get_device(connection=g.db, name="main")
-    all_devices = database.get_device(connection=g.db)
-    if all_devices:
-        for device in all_devices:
-            if device["name"] == device_name or main_device:
+    if main_device:
+        # Get all authorized devices
+        connected_devices = database.get_device(connection=g.db, authorized=1)
+    else:
+        # Get only the requested device
+        connected_devices = [database.get_device(connection=g.db, authorized=1, name=device_name)]
+
+    if connected_devices:
+        dev_found = False
+        for device in connected_devices:
+            if device["name"] != "main":
                 mqtt_message = json.dumps({
                     "host": device["name"],
                     "command": "trigger",
                     "relay_id": relay_index
                 })
                 helper.publish_mqtt_message(mqtt_message)
-                return jsonify({"status": "ok"}), 200
+                dev_found = True
+
+        if dev_found:
+            return jsonify({"status": "ok"}), 200
 
     return jsonify({"error": "device not found"}), 404
 
@@ -328,6 +372,7 @@ def manage_users():
         return redirect(safe_url_for('index'))
 
     unauthorized_users = database.get_user(connection=g.db, authorized=0)
+
     authorized_users = (
         database.get_user(connection=g.db, authorized=1)
         + database.get_user(connection=g.db, authorized=2)
@@ -351,9 +396,9 @@ def manage_users():
         authorized_users=authorized_users_sorted,
         user=user,
         title=settings.APP_TITLE,
-        url_for=safe_url_for
+        url_for=safe_url_for,
+        apartment_building_mode=settings.APARTMENT_BUILDING_MODE
     )
-
 
 
 @application.route('/manage_users', methods=['POST'])
@@ -384,7 +429,110 @@ def manage_users_post():
     elif action == 'make_admin':
         database.update_user(connection=g.db, email=email, authorized=2)
 
+    elif action == 'update_apartment':
+        apartment = request.form.get('apartment')
+        if apartment:
+            database.update_user(connection=g.db, email=email, apartment=apartment)
+
     return redirect(safe_url_for('manage_users'))
+
+
+@application.route('/approve_user', methods=['GET'])
+def approve_user():
+    email = request.args.get('email')
+    token = request.args.get('token')
+
+    if not email or not token:
+        return "Invalid request.", 400
+
+    user = database.get_user(connection=g.db, email=email)
+    if not user:
+        return "User not found.", 404
+
+    # Validate token matches
+    if user.get('token') != token:
+        return "Invalid or expired approval token.", 403
+
+    # Approve and clear token — optional
+    database.update_user(connection=g.db, email=email, authorized=1, token=None)
+
+    body = (f"Your application for {settings.APP_TITLE} has been approved.\n "
+            f"You may now access {request.host_url}")
+
+    helper.send_email(
+        recipient=email,
+        subject=f"{settings.APP_TITLE} registration approved",
+        body=body
+    )
+
+    return f"✅ User {email} has been approved and email sent as confirmation! They can now log in."
+
+
+@application.route('/complete_registration', methods=['GET', 'POST'])
+def complete_registration():
+    if request.method == 'GET':
+        email = request.args.get('email')
+
+        if not email:
+            return "Missing email", 400
+
+        return render_template(
+            'complete_registration.html',
+            email=email,
+            title="Complete Registration",
+            url_for=safe_url_for
+        )
+
+    else:
+        email = request.form.get('email')
+        apartment = request.form.get('apartment')
+        comment = request.form.get('comment') or ''
+
+        if not email or not apartment:
+            flash("Missing details")
+            return redirect(request.url)
+
+        # Generate approval token
+        approval_token = helper.generate_token()
+        database.add_user(connection=g.db, email=email, token=approval_token, apartment=apartment)
+
+        # Notify admins
+        admins = database.get_user(connection=g.db, authorized=2)
+        for admin in admins:
+            approve_link = f"{request.host_url}approve_user?email={email}&token={approval_token}"
+            body = (
+                f"New user: {email}\n"
+                f"Apartment: {apartment}\n"
+                f"Comment: {comment}\n\n"
+                f"Approve directly: {approve_link}\n"
+                f"Or manage here: {request.host_url.rstrip('/')}{safe_url_for('manage_users')}"
+            )
+
+            helper.send_email(
+                recipient=admin.get('email'),
+                subject=f"New user sign up at {settings.APP_TITLE}",
+                body=body
+            )
+
+        flash("Registration submitted! You will receive an email when an administrator approves it")
+        return redirect(safe_url_for('login'))
+
+
+@application.route('/export_emails')
+def export_emails():
+    # Collect all emails
+    all_users = database.get_user(connection=g.db)
+    emails = [u.get('email') for u in all_users]
+
+    # Create a CSV-like string
+    csv_content = ", ".join(emails)
+
+    # Send as a downloadable file
+    return Response(
+        csv_content,
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment; filename=email.txt"}
+    )
 
 
 @application.route('/manage_devices', methods=['GET'])
@@ -489,3 +637,5 @@ if __name__ == "__main__":
     # Disable Google auth for local development as it will not work without https
     IS_LOCAL = True
     application.run(debug=True, host="0.0.0.0", port=5000)
+
+# TODO: add family house mode, fix admin@vm120.in.rs mail send

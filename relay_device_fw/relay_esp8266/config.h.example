@@ -7,6 +7,7 @@
 //#define ENABLE_UPDATE_PASSWORD
 
 #define AP_MODE_TIMEOUT_S       120 // After this period since startup, try to connect as wifi client. This is to make sure router lease is updated.
+#define TRIGGER_TIMEOUT         3000
 
 #define RELAY_4_PIN             5   // Pin 16 is default and active on boot and triggeres a relay for about a second. Use pin 5 to avoid this.   
 #define RELAY_3_PIN             12   
@@ -28,8 +29,6 @@
 #define WIFI_PASS_SIZE          (32)
 #define SSID_EEPROM_ADDR        (WIFI_PASS_EEPROM_ADDR + WIFI_PASS_SIZE)
 #define SSID_SIZE               (32)
-#define STATION_IP_ADDR         (SSID_EEPROM_ADDR + SSID_SIZE)
-#define STATION_IP_SIZE         (4)
 #define EEPROM_SIZE             (WIFI_PASS_SIZE + SSID_SIZE + STATION_IP_SIZE)   
 
 #endif

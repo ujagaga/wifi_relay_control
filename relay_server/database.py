@@ -4,6 +4,7 @@ import settings
 import json
 import helper
 import logging
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -21,13 +22,15 @@ def init_database(connection):
 
     if not check_table_exists(connection, "users"):
         sql = """
-        CREATE TABLE users (
-            email TEXT NOT NULL UNIQUE,
-            token TEXT UNIQUE,
-            picture TEXT,
-            authorized INTEGER DEFAULT 0
-        );
-        """
+           CREATE TABLE users (
+               email TEXT NOT NULL UNIQUE,
+               token TEXT UNIQUE,
+               picture TEXT,
+               authorized INTEGER DEFAULT 0,
+               apartment TEXT,
+               last_seen TEXT
+           );
+           """
         cursor.execute(sql)
         connection.commit()
 
@@ -57,11 +60,11 @@ def close_db(connection):
     connection.close()
 
 
-def add_user(connection, email: str):
-    sql = "INSERT INTO users (email) VALUES (?);"
+def add_user(connection, email: str, token:str, apartment: str):
+    sql = "INSERT OR REPLACE INTO users (email, token, apartment) VALUES (?, ?, ?);"
 
     try:
-        connection.execute(sql, (email,))
+        connection.execute(sql, (email, token, apartment))
         connection.commit()
     except Exception as exc:
         exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -104,9 +107,15 @@ def get_user(connection, email: str = None, token: str = None, authorized: int =
             row = cursor.fetchone()
             user = dict(row) if row else None
 
-            # ✅ Ensure default picture for single user
-            if user and not user.get("picture"):
-                user["picture"] = "/static/blank_user.png"
+            if user:
+                if not user.get("picture"):
+                    user["picture"] = "/static/blank_user.png"
+                # Update last_seen to now (ISO format)
+                current_timestamp = helper.epoch_to_iso(int(time.time()))
+                user["last_seen"] = current_timestamp
+                connection.execute("UPDATE users SET last_seen = ? WHERE email = ?;",
+                                   (current_timestamp, user["email"]))
+                connection.commit()
 
         else:
             rows = cursor.fetchall()
@@ -115,6 +124,18 @@ def get_user(connection, email: str = None, token: str = None, authorized: int =
                 row_dict = dict(r)
                 if not row_dict.get("picture"):
                     row_dict["picture"] = "/static/blank_user.png"
+
+                if row_dict.get("last_seen"):
+
+                    try:
+                        epoch = helper.iso_to_epoch(row_dict["last_seen"])
+                        seconds_ago = int(time.time()) - epoch
+                        row_dict["last_seen"] = helper.rough_time_ago(seconds_ago)
+                    except:
+                        row_dict["last_seen"] = "unknown"
+                else:
+                    row_dict["last_seen"] = "never"
+
                 user.append(row_dict)
 
     except Exception as exc:
@@ -126,8 +147,7 @@ def get_user(connection, email: str = None, token: str = None, authorized: int =
     return user
 
 
-
-def update_user(connection, email: str, token: str = None, authorized: int = None, picture:str = None):
+def update_user(connection, email: str, token: str = None, authorized: int = None, picture:str = None, apartment = None):
     user = get_user(connection, email=email)
 
     if user:
@@ -137,9 +157,11 @@ def update_user(connection, email: str, token: str = None, authorized: int = Non
             user["authorized"] = authorized
         if picture is not None:
             user["picture"] = picture
+        if apartment is not None:
+            user["apartment"] = apartment
 
-        sql = "UPDATE users SET token = ?, authorized = ?, picture = ? WHERE email = ?;"
-        params = (user["token"], user["authorized"], user["picture"], email)
+        sql = "UPDATE users SET token = ?, authorized = ?, picture = ?, apartment = ? WHERE email = ?;"
+        params = (user["token"], user["authorized"], user["picture"], user["apartment"], email)
 
         try:
             connection.execute(sql, params)
