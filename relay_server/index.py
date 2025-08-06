@@ -638,4 +638,4 @@ if __name__ == "__main__":
     IS_LOCAL = True
     application.run(debug=True, host="0.0.0.0", port=5000)
 
-# TODO: fix admin@vm120.in.rs mail send
+
