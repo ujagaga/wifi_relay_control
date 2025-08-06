@@ -20,7 +20,7 @@ from datetime import datetime, timezone
 from flask_wtf import CSRFProtect
 from flask import jsonify
 
-# TODO: add family house mode, fix admin@vm120.in.rs mail send
+
 
 sys.path.insert(0, os.path.dirname(__file__))
 
@@ -638,4 +638,4 @@ if __name__ == "__main__":
     IS_LOCAL = True
     application.run(debug=True, host="0.0.0.0", port=5000)
 
-# TODO: add family house mode, fix admin@vm120.in.rs mail send
+# TODO: fix admin@vm120.in.rs mail send
