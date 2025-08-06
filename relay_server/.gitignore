@@ -1,0 +1,5 @@
+app.log
+app.log*
+__pycache__
+client_secret.json
+settings.py
