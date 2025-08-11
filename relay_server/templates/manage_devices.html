@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>{{ title }} - Devices</title>
+  <link rel="icon" type="image/x-icon" href="static/favicon.ico">
+  <link rel="stylesheet" href="static/home.css"/>
+</head>
+<body>
+  <div class="container">
+    <div class="user_picture_wrapper">
+      <img src="{{ user.picture }}" alt="Your Picture" class="user_picture">
+    </div>
+
+    <nav class="admin_nav">
+      <a href="/" class="nav_btn">Home</a>
+    </nav>
+
+    <div class="flash_message">
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          <p class="red_notification">{{ messages[0] }}</p>
+        {% endif %}
+      {% endwith %}
+    </div>
+
+    {% if not single_device_mode and not authorized_devices %}
+      <p style="color: red;">Warning: No devices found. The database may not be set up yet.</p>
+    {% endif %}
+
+    <h2>Mode of Operation</h2>
+    <form method="post" action="{{ url_for('toggle_device_mode') }}" style="margin-bottom: 2em;">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div class="mode-selector">
+        <label>
+          <input type="radio" name="mode" value="single"
+                 {% if single_device_mode %}checked{% endif %}
+                 onchange="this.form.submit()">
+          Single Device
+        </label>
+        <label>
+          <input type="radio" name="mode" value="multi"
+                 {% if not single_device_mode %}checked{% endif %}
+                 onchange="this.form.submit()">
+          Multi Device
+        </label>
+      </div>
+    </form>
+
+
+    <h2>Pending Devices</h2>
+
+    {% if unauthorized_devices %}
+      {% for dev in unauthorized_devices %}
+      <form method="post" action="{{ url_for('manage_devices_post') }}">
+        <div class="device_row">
+          <div class="device_card device_config">
+            <h2>{{ dev.name }}</h2>
+            <p><strong>Last Ping:</strong>
+            {% if dev.ping_at %}
+              <span class="ping_time" data-iso="{{ dev.ping_at }}">UTC: {{ dev.ping_at }}</span>
+            {% else %}
+              Never
+            {% endif %}
+          </p>
+          </div>
+
+          <div class="update_buttons">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <input type="hidden" name="device_name" value="{{ dev.name }}">
+            <button type="submit" name="action" value="authorize" class="save_btn device_action_btn">Authorize</button>
+            <button type="submit" name="action" value="remove" class="save_btn device_action_btn" style="margin-top:0.5em;">Remove</button>
+          </div>
+        </div>
+      </form>
+      {% endfor %}
+    {% else %}
+      <p>No pending devices.</p>
+    {% endif %}
+
+    <h2>Configure Authorized Devices</h2>
+
+    {% if authorized_devices %}
+      {% for device in authorized_devices %}
+      <form method="post" action="{{ url_for('manage_devices_post') }}">
+        <div class="device_row">
+          <div class="device_card device_config {% if single_device_mode and device.name != 'main' %}disabled{% endif %}">
+            <h3>{{ device.name }}</h3>
+
+            {% if device.ping_at %}
+              <p><strong>Last Ping:</strong>
+                <span class="ping_time" data-iso="{{ device.ping_at }}">UTC: {{ device.ping_at }}</span>
+              </p>
+            {% else %}
+              <p><strong>Last Ping:</strong> N/A</p>
+            {% endif %}
+
+            <label for="{{ device.name }}_label">Label:</label>
+            <input type="text" name="{{ device.name }}_label" id="{{ device.name }}_label" value="{{ device.data.label }}">
+
+            <label for="{{ device.name }}_sw_count">Buttons:</label>
+            <select name="{{ device.name }}_sw_count" id="{{ device.name }}_sw_count">
+              {% for i in range(1, 5) %}
+              <option value="{{ i }}" {% if device.data.sw_count == i %} selected {% endif %}>{{ i }}</option>
+              {% endfor %}
+            </select>
+
+            <label for="{{ device.name }}_reset_at">Restart At (hour 0–23):</label>
+            <input type="number"
+                   name="{{ device.name }}_reset_at"
+                   id="{{ device.name }}_reset_at"
+                   value="{{ device.data.reset_at }}"
+                   min="0"
+                   max="23"
+                   step="1">
+          </div>
+
+          <div class="update_buttons"
+               {% if single_device_mode and device.name != 'main' %}style="display:none;"{% endif %}>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="device_name" value="{{ device.name }}">
+
+            <button type="submit" name="action" value="update_single" class="save_btn device_action_btn">Save</button>
+            <button type="submit" name="action" value="remove" class="save_btn device_action_btn" style="margin-top:0.5em;">Remove</button>
+          </div>
+        </div>
+      </form>
+      {% endfor %}
+
+    {% else %}
+      <p>No authorized devices to configure.</p>
+    {% endif %}
+
+  </div>
+</body>
+<script src="static/home.js"></script>
+</html>

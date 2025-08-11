@@ -1,0 +1,417 @@
+:root {
+  --accent-color: #1fa3ec;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+a, a h1{
+  text-decoration: none !important;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.row.single {
+  justify-content: center;
+}
+
+.big_btn {
+  flex: 1 1 auto;
+  aspect-ratio: 1 / 1;   /* Makes it a square */
+  border-radius: 50%;
+  margin: 0.5%;          /* Small gap */
+  max-width: 150px;
+  min-width: 60px;
+  font-size: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--accent-color);
+  color: #fff;
+  border: none;
+}
+
+.big_btn.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+.big_btn.active {
+  background-color: #00c853; /* Green flash */
+  transition: background-color 0.3s ease;
+}
+
+.nav_btn{
+    color: white;
+    display: inline-block;
+    text-decoration: none;
+    float: left;
+    margin: 5px;
+    padding: 8px 12px;
+    background: #333;
+    border-radius: 4px;
+}
+
+.nav_btn:hover {
+  background: #555;
+}
+
+.admin_nav {
+    background-color: var(--accent-color);
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    padding-right: 60px;
+}
+
+.flash_message{
+    min-height: 20px;
+    margin-top: 80px;
+}
+
+h1 {
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.flash_message {
+  min-height: 1.5rem; /* adjust as needed for one line of text */
+}
+
+.red_notification {
+  color: red;
+  margin: 0; /* remove default <p> margin */
+}
+
+.checkbox_label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+  font-weight: bold;
+  color: #333;
+}
+
+.container{
+    flex: 1;
+    position: relative;
+    padding: 0 0 20px 0;
+    max-width: 800px;
+    min-width: 200px;
+    margin: 0 auto;
+    font-family: sans-serif;
+}
+
+.user_picture_wrapper {
+    position: absolute;
+    top: 20px;
+    right: 5px;
+}
+
+.user_picture {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 1rem;
+    border: 2px solid var(--accent-color);
+}
+
+.user_info_row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.user_info_row .user_picture {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.button_row {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.manage_users_btn {
+    position: relative;
+    display: inline-block;
+    padding-right: 20px; /* to give space for the dot */
+}
+
+.red_dot {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 10px;
+    height: 10px;
+    background-color: red;
+    border-radius: 50%;
+    border: 1.5px solid white;
+    pointer-events: none;
+}
+
+
+.device_config {
+    flex: 1 1 auto;
+    margin-right: 1em;
+}
+
+.vertical_buttons {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.vertical_buttons form {
+    margin-bottom: 0.5em;
+}
+
+.device_action_btn {
+    min-width: 120px;
+}
+
+
+.device_remove {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+
+.device_row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  margin-bottom: 1.5em;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 1em;
+}
+
+
+.update_buttons {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 160px; /* Fixed width for consistent buttons */
+}
+
+.update_buttons .device_action_btn {
+  width: 100%;
+  margin-top: 0.5em;
+}
+
+.update_buttons .device_action_btn:first-child {
+  margin-top: 0; /* Remove top margin on the first button */
+}
+
+.save_btn {
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  padding: 0.6em 1em;
+  border-radius: 4px;
+  cursor: pointer;
+  text-align: center;
+  font-size: 1em;
+  transition: background 0.2s ease;
+}
+
+.save_btn:hover {
+  background-color: #0056b3;
+}
+
+.device_card {
+  background: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.device_card h2 {
+    margin-top: 0;
+    text-align: center;
+}
+
+.device_card label {
+    display: block;
+    margin: 0.5rem 0 0.25rem;
+    font-weight: bold;
+    color: #1fa3ec;
+}
+
+.device_card input[type="text"],
+.device_card input[type="number"],
+.device_card select {
+  width: 100%;
+  box-sizing: border-box; /* Make sure padding & border stay inside the width */
+  margin-bottom: 0.5em;
+  padding: 0.4em;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.device_card.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.mode-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  margin-bottom: 2em;
+}
+
+.progress-bar {
+    width: 0%;
+    height: 5px;
+    background: var(--accent-color);
+    transition: width 1s linear;
+    margin-top: 10px;
+}
+
+.footer {
+  text-align: center;
+  margin-top: 2rem;
+  padding: 1rem 0;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.footer a {
+  color: #1fa3ec; /* or use your --accent-color */
+  text-decoration: none;
+}
+
+.footer a:hover {
+  text-decoration: underline;
+}
+
+.page-wrapper {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.user_info_row {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: nowrap; /* prevents breaking into a new row */
+}
+
+.user_info_row .user_picture {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0; /* don't let the picture shrink */
+}
+
+.user_text_info {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0; /* allows text to wrap */
+  word-break: break-word;
+}
+
+.user_text_info p {
+  margin: 2px 0;
+  line-height: 1.1;
+  font-size: 0.9em;
+}
+
+.modal {
+    position: fixed;
+    z-index: 9999;
+    left: 0; top: 0; width: 100%; height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 10% auto;
+    padding: 20px;
+    border-radius: 8px;
+    width: 300px;
+}
+
+.close {
+    float: right;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+.edit-apartment-link{
+    padding-left: 1rem;
+}
+
+/* Image zoom modal */
+#imgModal {
+  display: none;
+  position: fixed;
+  z-index: 999;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0,0,0,0.9);
+  align-items: center;
+  justify-content: center;
+}
+
+#imgModal img {
+  max-width: 95vw;
+  max-height: 95vh;
+  width: auto;
+  height: auto;
+  animation: zoomIn 0.3s;
+  box-shadow: 0 0 20px rgba(255,255,255,0.3);
+  border-radius: 8px;
+}
+
+#imgModal .close {
+  position: absolute;
+  top: 20px;
+  right: 40px;
+  color: white;
+  font-size: 40px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+@keyframes zoomIn {
+  from { transform: scale(0.7); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+
+
+@media only screen and (max-width: 767px) {
+  /* CSS rules for mobile devices */
+  .container{
+    min-width: 100vw;
+  }
+}
+
+@media (orientation: landscape) {
+  /* Styles for landscape mode (width > height) */
+  .container{
+    min-width: 400px;
+  }
+}

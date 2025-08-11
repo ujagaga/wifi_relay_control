@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>{{ title }} - Users</title>
+  <link rel="icon" type="image/x-icon" href="static/favicon.ico">
+  <link rel="stylesheet" href="static/home.css"/>
+  <link rel="stylesheet" href="static/css/fontawesome.min.css" />
+  <link rel="stylesheet" href="static/css/solid.min.css" />
+</head>
+<body>
+  <!-- Image Modal -->
+  <div id="imgModal">
+    <span class="close">&times;</span>
+    <img id="modalImage" src="" alt="Zoomed image">
+  </div>
+
+  <div class="container">
+    <div class="user_picture_wrapper">
+      <img src="{{ user.picture }}" alt="Your Picture" class="user_picture">
+    </div>
+
+    <nav class="admin_nav">
+      <a href="/" class="nav_btn">Home</a>
+    </nav>
+
+    <form method="get" action="{{ url_for('export_emails') }}">
+      <button type="submit" class="save_btn device_action_btn">Export Emails</button>
+    </form>
+
+    <h1>Pending Users</h1>
+
+    {% if unauthorized_users %}
+      {% for u in unauthorized_users %}
+      <div class="device_row">
+        <div class="device_card device_config">
+          <div class="user_info_row">
+            <img src="{{ u.picture }}" alt="User picture" class="user_picture">
+            <div class="user_text_info">
+              <p><strong>Email:</strong> {{ u.email }}</p>
+              {% if apartment_building_mode %}
+              <p><strong>Apartment:</strong> {{ u.apartment }}</p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <div class="update_buttons">
+          <form method="post" action="{{ url_for('manage_users_post') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="email" value="{{ u.email }}">
+            <input type="hidden" name="action" value="authorize">
+            <button type="submit" class="save_btn device_action_btn">Authorize</button>
+          </form>
+
+          <form method="post" action="{{ url_for('manage_users_post') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="email" value="{{ u.email }}">
+            <input type="hidden" name="action" value="remove">
+            <button type="submit" class="save_btn device_action_btn">Remove</button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <p>No pending users.</p>
+    {% endif %}
+
+    <h1>Authorized Users</h1>
+
+    {% if authorized_users %}
+      {% for a in authorized_users %}
+      <div class="device_row">
+        <div class="device_card device_config">
+          <div class="user_info_row">
+            <img src="{{ a.picture }}" alt="User picture" class="user_picture">
+            <div class="user_text_info">
+              <p><strong>Email:</strong> {{ a.email }}</p>
+
+              {% if apartment_building_mode %}
+              <p><strong>Apartment:</strong> {{ a.apartment }}
+                <a href="#" class="edit-apartment-link" data-email="{{ a.email }}" data-apartment="{{ a.apartment }}">
+                  <i class="fa-solid fa-pen"></i>
+                </a>
+              </p>
+              {% endif %}
+
+              <p><strong>Role:</strong> {% if a.authorized > 1 %}Admin{% else %}User{% endif %}</p>
+              <p><strong>Last seen:</strong> {{ a.last_seen }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="update_buttons">
+          {% if a.email != user.email %}
+            <form method="post" action="{{ url_for('manage_users_post') }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input type="hidden" name="email" value="{{ a.email }}">
+              <input type="hidden" name="action" value="remove">
+              <button type="submit" class="save_btn device_action_btn">Remove</button>
+            </form>
+          {% else %}
+            <p>Current user</p>
+          {% endif %}
+
+          {% if a.authorized == 1 %}
+            <form method="post" action="{{ url_for('manage_users_post') }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input type="hidden" name="email" value="{{ a.email }}">
+              <input type="hidden" name="action" value="make_admin">
+              <button type="submit" class="save_btn device_action_btn">Make Admin</button>
+            </form>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <p>No authorized users.</p>
+    {% endif %}
+  </div>
+
+  <div id="apartmentModal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <form method="post" action="{{ url_for('manage_users_post') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="email" id="modal-email">
+        <input type="hidden" name="action" value="update_apartment">
+        <label for="modal-apartment">New Apartment:</label>
+        <input type="text" name="apartment" id="modal-apartment" required>
+        <button type="submit" class="save_btn device_action_btn">Save</button>
+      </form>
+    </div>
+  </div>
+
+</body>
+<script src="static/home.js"></script>
+<script src="static/manage_users.js"></script>
+
+</html>

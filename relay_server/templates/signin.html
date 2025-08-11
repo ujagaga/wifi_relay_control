@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} - Login</title>
+    <link rel="icon" type="image/x-icon" href="static/favicon.ico">
+    <link rel="stylesheet" href="static/signin.css"/>
+</head>
+<body>
+<div class="box">
+
+    <a href="/authorize" class="login_btn"><h1>Login</h1><br><img src="static/login.png" alt="Login" /></a>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <p class="red_notification">
+                {{ messages[0] }}
+            </p>
+        {% else %}
+            <p>&nbsp</p>
+        {% endif %}
+    {% endwith %}
+</div>
+</body>
+</html>
