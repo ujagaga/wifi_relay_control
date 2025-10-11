@@ -9,6 +9,7 @@ import logging
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import ssl
 
 logger = logging.getLogger(__name__)
 DATE_FORMAT = "%Y-%m-%d"
@@ -52,12 +53,18 @@ def to_int(number, default = 0):
 
 
 def publish_mqtt_message(message):
+    if settings.MQTT_TLS:
+        tls = {'tls_version': ssl.PROTOCOL_TLS}
+    else:
+        tls = None
+
     publish.single(
         topic=settings.MQTT_TOPIC,
         payload=message,
         hostname=settings.MQTT_BROKER,
         port=settings.MQTT_PORT,
         auth={'username': settings.MQTT_USER, 'password': settings.MQTT_PASS},
+        tls=tls,
         keepalive=60
     )
     logger.info(f"Published MQTT message: {message}")
