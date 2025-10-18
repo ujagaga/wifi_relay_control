@@ -4,7 +4,6 @@ from hashlib import sha256
 import sys
 import settings
 from datetime import datetime, timezone
-import paho.mqtt.publish as publish
 import logging
 import smtplib
 from email.mime.text import MIMEText
@@ -50,24 +49,6 @@ def to_int(number, default = 0):
         return int(number)
     except:
         return default
-
-
-def publish_mqtt_message(message):
-    if settings.MQTT_TLS:
-        tls = {'tls_version': ssl.PROTOCOL_TLS}
-    else:
-        tls = None
-
-    publish.single(
-        topic=settings.MQTT_TOPIC,
-        payload=message,
-        hostname=settings.MQTT_BROKER,
-        port=settings.MQTT_PORT,
-        auth={'username': settings.MQTT_USER, 'password': settings.MQTT_PASS},
-        tls=tls,
-        keepalive=60
-    )
-    logger.info(f"Published MQTT message: {message}")
 
 
 def iso_to_epoch(iso_str: str) -> int:

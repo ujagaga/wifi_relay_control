@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 '''
-pip install flask authlib paho-mqtt flask-wtf requests
+pip install flask authlib flask-wtf requests
 '''
 from flask import Flask, g, render_template, request, flash, redirect, make_response, Response
 from flask import url_for as flask_url_for
@@ -289,8 +289,10 @@ def device_report():
     else:
         restarted_at_epoch = 0
 
+    do_restart_flag = False
     response = "OK"
     dev_data = relay_device.get("data")
+    dev_unlock = relay_device.get("unlock")
     if dev_data:
         if (current_timestamp - restarted_at_epoch) > (2 * 60 * 60):
             target_reset_hour = int(dev_data.get("reset_at", settings.RESET_DEVS_AT))
@@ -298,18 +300,32 @@ def device_report():
             if utc_now.hour == target_reset_hour:
                 # time to restart the device
                 response = json.dumps({
-                    "host": name,
                     "command": "restart"
                 })
-                helper.publish_mqtt_message(response)
                 restarted_at_epoch = current_timestamp
+                do_restart_flag = True
+
+    if not do_restart_flag:
+        # Check if unlock command is triggered
+        if dev_unlock:
+            current_timestamp = int(time.time())
+            unlock_epoch_time = dev_unlock.get("unlocked_at", 0)
+            unlock_interval = current_timestamp - unlock_epoch_time
+            if (unlock_interval > 0) and (unlock_interval < 8):
+                # Do unlock the device
+                response = json.dumps({
+                    "relay_id": dev_unlock.get("relay_id", 0),
+                    "command": "unlock"
+                })
+
 
     # Save ping and restart time as ISO
     database.update_device(
         connection=g.db,
         name=name,
         ping_at=current_timestamp,
-        restarted_at=restarted_at_epoch
+        restarted_at=restarted_at_epoch,
+        unlock=dev_unlock
     )
 
     return response, 200
@@ -344,12 +360,12 @@ def unlock():
         dev_found = False
         for device in connected_devices:
             if device["name"] != "main":
-                mqtt_message = json.dumps({
-                    "host": device["name"],
-                    "command": "trigger",
+                current_timestamp = int(time.time())
+                unlock_info = json.dumps({
+                    "unlocked_at": current_timestamp,
                     "relay_id": relay_index
                 })
-                helper.publish_mqtt_message(mqtt_message)
+                database.update_device(connection=g.db, name=device["name"], unlock=unlock_info)
                 dev_found = True
 
         if dev_found:
