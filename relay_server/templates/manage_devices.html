@@ -9,6 +9,8 @@
   <title>{{ title }} - Devices</title>
   <link rel="icon" type="image/x-icon" href="static/favicon.ico">
   <link rel="stylesheet" href="static/home.css"/>
+  <link rel="stylesheet" href="static/css/fontawesome.min.css" />
+  <link rel="stylesheet" href="static/css/solid.min.css" />
 </head>
 <body>
   <div class="container">
@@ -29,7 +31,7 @@
     </div>
 
     {% if not single_device_mode and not authorized_devices %}
-      <p style="color: red;">Warning: No devices found. The database may not be set up yet.</p>
+      <p style="color: red;">Warning: No devices found.</p>
     {% endif %}
 
     <h2>Mode of Operation</h2>
@@ -135,6 +137,37 @@
 
     {% else %}
       <p>No authorized devices to configure.</p>
+    {% endif %}
+
+    <h2>Firmware Update</h2>
+
+    <!-- Upload form -->
+    <form id="firmware_form" method="post" action="{{ url_for('upload_firmware') }}" enctype="multipart/form-data">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="file" id="firmware_file" name="firmware_file" accept=".bin" required style="display:none;">
+      <label for="firmware_file" class="upload_label">
+        <i class="fa-solid fa-upload"></i>
+      </label>
+    </form>
+
+    <!-- List of uploaded firmware files -->
+    {% if firmware_files %}
+      <ul class="firmware_list">
+        {% for fw in firmware_files %}
+          <li class="firmware_item" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5em;">
+            <span>{{ fw }}</span>
+            <form method="post" action="{{ url_for('delete_firmware') }}" style="display:inline;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input type="hidden" name="filename" value="{{ fw }}">
+              <button type="submit" class="save_btn" title="Delete Firmware" style="background-color:#b33;">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </form>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No firmware files uploaded yet.</p>
     {% endif %}
 
   </div>

@@ -61,4 +61,15 @@ document.addEventListener('DOMContentLoaded', function () {
       span.textContent = formatted;
     });
 
+    const fileInput = document.getElementById("firmware_file");
+    const form = document.getElementById("firmware_form");
+
+    if (fileInput && form) {
+    fileInput.addEventListener("change", () => {
+            if (fileInput.files.length > 0) {
+                form.submit();
+            }
+        });
+    }
+
 });

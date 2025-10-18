@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-'''
+"""
 pip install flask authlib flask-wtf requests
-'''
-from flask import Flask, g, render_template, request, flash, redirect, make_response, Response
-from flask import url_for as flask_url_for
+"""
+
+from flask import (Flask, g, render_template, request, flash, redirect, make_response, Response,
+                   send_from_directory, url_for as flask_url_for)
 import time
 import json
 import sys
@@ -19,7 +20,7 @@ import settings
 from datetime import datetime, timezone
 from flask_wtf import CSRFProtect
 from flask import jsonify
-
+from werkzeug.utils import secure_filename
 
 
 sys.path.insert(0, os.path.dirname(__file__))
@@ -31,17 +32,21 @@ logging.basicConfig(handlers=[RotatingFileHandler(os.path.join(os.path.dirname(_
 
 logger = logging.getLogger(__name__)
 
+UPLOAD_FOLDER = "firmware"
+ALLOWED_EXTENSIONS = ["bin"]
+
 application = Flask(__name__, static_url_path='/static', static_folder='static')
 application.config['SECRET_KEY'] = settings.APP_SECRET_KEY
 application.config['SESSION_COOKIE_NAME'] = 'gate_ctrl'
 application.config['WTF_CSRF_SECRET_KEY'] = application.config['SECRET_KEY']
 application.config['APPLICATION_ROOT'] = '/'
+application.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 csrf = CSRFProtect(application)
 
 CLIENT_SECRETS_FILE = "client_secret.json"
 IS_LOCAL = False
-
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 if IS_LOCAL:
     google = None
@@ -78,6 +83,10 @@ def safe_url_for(endpoint, **values):
     if script_name and url.startswith(script_name):
         url = url[len(script_name):] or '/'
     return url
+
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 def get_connected_devices_for_index(connection):
@@ -583,6 +592,11 @@ def manage_devices():
         key=lambda d: 0 if d['name'] == 'main' else 1
     )
 
+    # Collect firmware files to display
+    firmware_files = []
+    if os.path.exists(UPLOAD_FOLDER):
+        firmware_files = sorted(os.listdir(UPLOAD_FOLDER), reverse=True)
+
     return render_template(
         'manage_devices.html',
         authorized_devices=authorized_devices,
@@ -590,9 +604,9 @@ def manage_devices():
         single_device_mode=single_device_mode,
         user=user,
         title=settings.APP_TITLE,
-        url_for=safe_url_for
+        url_for=safe_url_for,
+        firmware_files=firmware_files
     )
-
 
 
 @application.route('/manage_devices', methods=['POST'])
@@ -654,6 +668,51 @@ def toggle_device_mode():
 
     database.sync_temp_db_to_disk(connection=g.db)
     return redirect(safe_url_for('manage_devices'))
+
+
+@application.route("/upload_firmware", methods=["POST"])
+def upload_firmware():
+    if "firmware_file" not in request.files:
+        flash("No file part")
+        return redirect(safe_url_for("manage_devices"))
+
+    file = request.files["firmware_file"]
+    if file.filename == "":
+        flash("No selected file")
+        return redirect(safe_url_for("manage_devices"))
+
+    if file and allowed_file(file.filename):
+        original_name = secure_filename(file.filename)
+
+        # prepend timestamp (e.g. 2025-10-18_19-31-45_filename.bin)
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        filename = f"{timestamp}_{original_name}"
+
+        filepath = os.path.join(application.config["UPLOAD_FOLDER"], filename)
+        file.save(filepath)
+
+        flash(f"Firmware '{original_name}' uploaded as '{filename}'.")
+        return redirect(safe_url_for("manage_devices"))
+
+    flash(f"Invalid file type. Only {ALLOWED_EXTENSIONS} allowed.")
+    return redirect(safe_url_for("manage_devices"))
+
+
+@application.route("/delete_firmware", methods=["POST"])
+def delete_firmware():
+    filename = request.form.get("filename")
+    if not filename:
+        flash("Missing filename.")
+        return redirect(safe_url_for("manage_devices"))
+
+    filepath = os.path.join(UPLOAD_FOLDER, filename)
+    if os.path.exists(filepath):
+        os.remove(filepath)
+        flash(f"Firmware '{filename}' deleted.")
+    else:
+        flash("File not found.")
+
+    return redirect(safe_url_for("manage_devices"))
 
 
 if __name__ == "__main__":

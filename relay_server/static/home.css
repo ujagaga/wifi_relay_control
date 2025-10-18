@@ -415,3 +415,24 @@ h1 {
     min-width: 400px;
   }
 }
+
+.upload_label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  background-color: #0078d7;
+  color: white;
+  padding: 0.6em 1.2em;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-weight: 500;
+}
+
+.upload_label:hover {
+  background-color: #005fa3;
+}
+
+.upload_label i {
+  font-size: 1.1em;
+}
