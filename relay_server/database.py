@@ -57,7 +57,7 @@ def init_database(connection):
             ping_at TEXT,
             data TEXT,
             authorized INTEGER DEFAULT 0,
-            unlock TEXT,
+            command TEXT,
             restarted_at TEXT
         );
         """
@@ -232,13 +232,13 @@ def get_device(connection, name: str = None, authorized: int = None):
                 else:
                     device["data"] = {}
 
-                if device.get("unlock"):
+                if device.get("command"):
                     try:
-                        device["unlock"] = json.loads(device["unlock"])
+                        device["command"] = json.loads(device["command"])
                     except json.JSONDecodeError:
-                        device["unlock"] = {}
+                        device["command"] = {}
                 else:
-                    device["unlock"] = {}
+                    device["command"] = {}
 
                 if not device.get("restarted_at"):
                     device["restarted_at"] = 0
@@ -256,11 +256,11 @@ def get_device(connection, name: str = None, authorized: int = None):
                     except json.JSONDecodeError:
                         d["data"] = {}
 
-                if d.get("unlock"):
+                if d.get("command"):
                     try:
-                        d["unlock"] = json.loads(d["unlock"])
+                        d["command"] = json.loads(d["command"])
                     except json.JSONDecodeError:
-                        d["unlock"] = {}
+                        d["command"] = {}
 
                 if not d.get("restarted_at"):
                     d["restarted_at"] = 0
@@ -278,7 +278,7 @@ def update_device(
     ping_at: int = None,
     authorized: int = None,
     restarted_at: int = None,
-    unlock = None,
+    command = None,
     data = None
 ):
     device = get_device(connection, name=name)
@@ -292,17 +292,17 @@ def update_device(
             device["authorized"] = authorized
         if data is not None:
             device["data"] = data
-        if unlock is not None:
-            device["unlock"] = unlock
+        if command is not None:
+            device["command"] = command
 
         if isinstance(device.get("data"), dict):
             device["data"] = json.dumps(device.get("data"))
-        if isinstance(device.get("unlock"), dict):
-            device["unlock"] = json.dumps(device.get("unlock"))
+        if isinstance(device.get("command"), dict):
+            device["command"] = json.dumps(device.get("command"))
 
         sql = """
         UPDATE devices
-        SET ping_at = ?, restarted_at = ?, authorized = ?, data = ?, unlock = ?
+        SET ping_at = ?, restarted_at = ?, authorized = ?, data = ?, command = ?
         WHERE name = ?;
         """
         params = (
@@ -310,7 +310,7 @@ def update_device(
             device.get("restarted_at"),
             device.get("authorized"),
             device.get("data"),
-            device.get("unlock"),
+            device.get("command"),
             name
         )
 

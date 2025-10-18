@@ -301,7 +301,7 @@ def device_report():
     do_restart_flag = False
     response = "OK"
     dev_data = relay_device.get("data")
-    dev_unlock = relay_device.get("unlock")
+    dev_command = relay_device.get("command")
     if dev_data:
         if (current_timestamp - restarted_at_epoch) > (2 * 60 * 60):
             target_reset_hour = int(dev_data.get("reset_at", settings.RESET_DEVS_AT))
@@ -316,14 +316,14 @@ def device_report():
 
     if not do_restart_flag:
         # Check if unlock command is triggered
-        if dev_unlock:
+        if dev_command:
             current_timestamp = int(time.time())
-            unlock_epoch_time = dev_unlock.get("unlocked_at", 0)
+            unlock_epoch_time = dev_command.get("unlocked_at", 0)
             unlock_interval = current_timestamp - unlock_epoch_time
             if (unlock_interval > 0) and (unlock_interval < 8):
                 # Do unlock the device
                 response = json.dumps({
-                    "relay_id": dev_unlock.get("relay_id", 0),
+                    "relay_id": dev_command.get("relay_id", 0),
                     "command": "unlock"
                 })
 
@@ -333,8 +333,7 @@ def device_report():
         connection=g.db,
         name=name,
         ping_at=current_timestamp,
-        restarted_at=restarted_at_epoch,
-        unlock=dev_unlock
+        restarted_at=restarted_at_epoch
     )
 
     return response, 200
@@ -370,11 +369,11 @@ def unlock():
         for device in connected_devices:
             if device["name"] != "main":
                 current_timestamp = int(time.time())
-                unlock_info = json.dumps({
+                command = json.dumps({
                     "unlocked_at": current_timestamp,
                     "relay_id": relay_index
                 })
-                database.update_device(connection=g.db, name=device["name"], unlock=unlock_info)
+                database.update_device(connection=g.db, name=device["name"], command=command)
                 dev_found = True
 
         if dev_found:
@@ -718,7 +717,16 @@ def delete_firmware():
 def start_update():
     firmware = request.form.get("firmware")
     selected_devices = request.form.getlist("devices")
-    # Perform update logic here
+
+    current_timestamp = int(time.time())
+
+    for device in selected_devices:
+        command = json.dumps({
+            "update_at": current_timestamp,
+            "firmware_id": firmware
+        })
+        database.update_device(connection=g.db, name=device, command=command)
+
     flash(f"Started update of {firmware} on {len(selected_devices)} devices.")
     return redirect(safe_url_for("manage_devices"))
 
