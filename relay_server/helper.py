@@ -8,7 +8,6 @@ import logging
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-import ssl
 
 logger = logging.getLogger(__name__)
 DATE_FORMAT = "%Y-%m-%d"

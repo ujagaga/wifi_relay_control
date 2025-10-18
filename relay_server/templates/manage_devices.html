@@ -54,7 +54,6 @@
       </div>
     </form>
 
-
     <h2>Pending Devices</h2>
 
     {% if unauthorized_devices %}
@@ -152,10 +151,22 @@
 
     <!-- List of uploaded firmware files -->
     {% if firmware_files %}
-      <ul class="firmware_list">
-        {% for fw in firmware_files %}
-          <li class="firmware_item" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5em;">
-            <span>{{ fw }}</span>
+    <ul class="firmware_list" style="padding:0; margin:0;">
+      {% for fw in firmware_files %}
+        <li class="firmware_item"
+            style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5em;padding:0.5em;border-radius:6px;background:#fafafa;">
+          <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-right:0.5em;">{{ fw }}</span>
+
+          <div style="display:flex;gap:0.4em;align-items:center;">
+            <!-- Update button: opens modal -->
+            <button type="button"
+                    class="save_btn"
+                    onclick="openUpdateModal('{{ fw }}')"
+                    title="Update firmware {{ fw }}">
+              <i class="fa-solid fa-arrow-up-from-bracket"></i>
+            </button>
+
+            <!-- Delete form (keeps existing behavior) -->
             <form method="post" action="{{ url_for('delete_firmware') }}" style="display:inline;">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <input type="hidden" name="filename" value="{{ fw }}">
@@ -163,12 +174,47 @@
                 <i class="fa-solid fa-trash"></i>
               </button>
             </form>
-          </li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p>No firmware files uploaded yet.</p>
-    {% endif %}
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+
+    <!-- Reusable modal (initially hidden) -->
+    <div id="updateModal" class="modal hidden" aria-hidden="true" role="dialog" aria-modal="true">
+      <div class="modal-content" role="document" tabindex="-1">
+        <button class="modal-close" aria-label="Close" onclick="closeUpdateModal()">&times;</button>
+        <h3 style="margin-top:0;">Update firmware <span id="modalFirmwareName" style="font-weight:600;"></span></h3>
+
+        <form id="startUpdateForm" method="post" action="{{ url_for('start_update') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="firmware" id="modalFirmwareInput" value="">
+
+          <div class="device_choices" id="deviceChoices"
+             style="max-height:300px;overflow:auto;padding:0.5em;border:1px solid #eee;border-radius:6px;margin-bottom:0.75em;">
+            {% if authorized_devices %}
+              {% for device in authorized_devices %}
+                {% if device.name != "main" %}
+                  <label style="display:block;padding:0.25em 0;">
+                    <input type="checkbox" name="devices" value="{{ device.name }}"> {{ device.name }}
+                  </label>
+                {% endif %}
+              {% endfor %}
+            {% else %}
+              <p>No authorized devices available.</p>
+            {% endif %}
+          </div>
+
+          <div style="display:flex;gap:0.6em;justify-content:flex-end;">
+            <button type="button" class="save_btn" onclick="closeUpdateModal()">Cancel</button>
+            <button type="submit" class="save_btn" style="background-color:#2a7;">Start Update</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  {% else %}
+    <p>No firmware files uploaded yet.</p>
+  {% endif %}
 
   </div>
 </body>

@@ -14,6 +14,7 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 persist_db = os.path.join(script_dir, settings.DB_NAME)
 temp_dir = os.path.join("/dev", "shm", settings.APP_TITLE)
 temp_db = os.path.join(temp_dir, settings.DB_NAME)
+os.makedirs(temp_dir, exist_ok=True)
 
 
 def check_table_exists(connection, tablename):
@@ -307,7 +308,6 @@ def update_device(
         params = (
             device.get("ping_at"),
             device.get("restarted_at"),
-            device.get("unlocked_at"),
             device.get("authorized"),
             device.get("data"),
             device.get("unlock"),
@@ -319,7 +319,7 @@ def update_device(
             connection.commit()
         except Exception as exc:
             exc_type, exc_obj, exc_tb = sys.exc_info()
-            logger.exception(f"ERROR adding user to db on line {exc_tb.tb_lineno}!\n\t{exc}")
+            logger.exception(f"ERROR updating db on line {exc_tb.tb_lineno}!\n\t{exc}")
 
 
 def delete_device(connection, name: str):
@@ -340,7 +340,6 @@ def setup_initial_db():
         close_db(connection)
 
     if not os.path.isfile(temp_db):
-        os.makedirs(temp_dir, exist_ok=True)
         shutil.copy2(persist_db, temp_db)
         
 def sync_temp_db_to_disk(connection=None):

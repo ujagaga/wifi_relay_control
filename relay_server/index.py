@@ -25,7 +25,7 @@ from werkzeug.utils import secure_filename
 
 sys.path.insert(0, os.path.dirname(__file__))
 
-logging.basicConfig(handlers=[RotatingFileHandler(os.path.join(os.path.dirname(__file__),'app.log'), maxBytes=65535, backupCount=1)],
+logging.basicConfig(handlers=[RotatingFileHandler(os.path.join(database.temp_dir,'app.log'), maxBytes=65535, backupCount=1)],
         level=logging.DEBUG,
         format="[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s",
         datefmt='%Y-%m-%dT%H:%M:%S')
@@ -712,6 +712,14 @@ def delete_firmware():
     else:
         flash("File not found.")
 
+    return redirect(safe_url_for("manage_devices"))
+
+@application.route("/start_update", methods=["POST"])
+def start_update():
+    firmware = request.form.get("firmware")
+    selected_devices = request.form.getlist("devices")
+    # Perform update logic here
+    flash(f"Started update of {firmware} on {len(selected_devices)} devices.")
     return redirect(safe_url_for("manage_devices"))
 
 

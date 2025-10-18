@@ -72,4 +72,57 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    (function(){
+  const modal = document.getElementById('updateModal');
+  const modalName = document.getElementById('modalFirmwareName');
+  const modalInput = document.getElementById('modalFirmwareInput');
+
+  // Safely encode firmware name into element id: we rely on passing the exact filename into inputs/labels,
+  // so we only need to set text values and hidden input values here.
+  window.openUpdateModal = function(firmwareName) {
+    modalName.textContent = firmwareName;
+    modalInput.value = firmwareName;
+    modal.classList.remove('hidden');
+    modal.setAttribute('aria-hidden', 'false');
+    // focus first checkbox or form submit for keyboard users
+    const firstCheckbox = modal.querySelector('input[type="checkbox"]');
+    if (firstCheckbox) firstCheckbox.focus();
+    else modal.querySelector('button[type="submit"]').focus();
+    // prevent body scroll
+    document.body.style.overflow = 'hidden';
+  };
+
+  window.closeUpdateModal = function() {
+    modal.classList.add('hidden');
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  };
+
+  // close modal on Esc and on clicking outside modal-content
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+      closeUpdateModal();
+    }
+  });
+
+  modal.addEventListener('click', function(e) {
+    if (e.target === modal) {
+      closeUpdateModal();
+    }
+  });
+
+  // Ensure when form submits, checked devices are sent as devices[] or devices depending on your backend expectation.
+  // Flask request.form.getlist('devices') will read multiple inputs named "devices".
+  // No extra JS required here, but you can validate selection count before submit if desired.
+  const form = document.getElementById('startUpdateForm');
+  form.addEventListener('submit', function(e){
+    const checked = form.querySelectorAll('input[type="checkbox"]:checked');
+    if (checked.length === 0) {
+      e.preventDefault();
+      alert('Please select at least one device to update.');
+    }
+    // otherwise let the form submit normally
+  });
+})();
+
 });
