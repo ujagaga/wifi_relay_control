@@ -450,6 +450,8 @@ def manage_users_post():
         if apartment:
             database.update_user(connection=g.db, email=email, apartment=apartment)
 
+    database.sync_temp_db_to_disk(connection=g.db)
+
     return redirect(safe_url_for('manage_users'))
 
 
@@ -480,6 +482,8 @@ def approve_user():
         subject=f"{settings.APP_TITLE} registration approved",
         body=body
     )
+
+    database.sync_temp_db_to_disk(connection=g.db)
 
     return f"✅ User {email} has been approved and email sent as confirmation! They can now log in."
 
@@ -530,6 +534,7 @@ def complete_registration():
                 body=body
             )
 
+        database.sync_temp_db_to_disk(connection=g.db)
         flash("Registration submitted! You will receive an email when an administrator approves it")
         return redirect(safe_url_for('login'))
 
@@ -628,6 +633,7 @@ def manage_devices_post():
         database.update_device(connection=g.db, name=name, data=dev_data)
         flash(f"Device '{name}' updated!")
 
+    database.sync_temp_db_to_disk(connection=g.db)
     return redirect(safe_url_for('manage_devices'))
 
 
@@ -646,12 +652,14 @@ def toggle_device_mode():
         logger.error(f"Failed to toggle device mode: {e}")
         flash("Could not toggle device mode. Check server logs and database permissions.")
 
+    database.sync_temp_db_to_disk(connection=g.db)
     return redirect(safe_url_for('manage_devices'))
 
 
 if __name__ == "__main__":
     # Disable Google auth for local development as it will not work without https
     IS_LOCAL = True
+    database.setup_initial_db()
     application.run(debug=True, host="0.0.0.0", port=5000)
 
 

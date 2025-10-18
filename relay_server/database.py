@@ -5,8 +5,16 @@ import json
 import helper
 import logging
 import time
+import os
+import shutil
+
 
 logger = logging.getLogger(__name__)
+script_dir = os.path.dirname(os.path.abspath(__file__))
+persist_db = os.path.join(script_dir, settings.DB_NAME)
+temp_dir = os.path.join("/dev", "shm", settings.APP_TITLE)
+temp_db = os.path.join(temp_dir, settings.DB_NAME)
+
 
 def check_table_exists(connection, tablename):
     cursor = connection.cursor()
@@ -15,7 +23,6 @@ def check_table_exists(connection, tablename):
     result = bool(data)
     cursor.close()
     return result
-
 
 def init_database(connection):
     cursor = connection.cursor()
@@ -32,6 +39,14 @@ def init_database(connection):
            );
            """
         cursor.execute(sql)
+        connection.commit()
+
+        # Insert super admin user here
+        insert_sql = """
+            INSERT INTO users (email, authorized)
+            VALUES (?, ?)
+        """
+        cursor.execute(insert_sql, (settings.SUPER_ADMIN, 2))  # 1 = authorized as user, 2 = admin
         connection.commit()
 
     if not check_table_exists(connection, "devices"):
@@ -51,9 +66,9 @@ def init_database(connection):
     cursor.close()
 
 
-def open_db():
-    connection = sqlite3.connect(settings.DB_NAME)
-    connection.row_factory = sqlite3.Row  # So we can use row["colname"]
+def open_db(db_path=temp_db):
+    connection = sqlite3.connect(db_path)
+    connection.row_factory = sqlite3.Row
     return connection
 
 
@@ -316,3 +331,27 @@ def delete_device(connection, name: str):
     except Exception as exc:
         exc_type, exc_obj, exc_tb = sys.exc_info()
         logger.exception(f"ERROR adding user to db on line {exc_tb.tb_lineno}!\n\t{exc}")
+
+
+def setup_initial_db():
+    if not os.path.isfile(persist_db):
+        connection = open_db(persist_db)
+        init_database(connection)
+        close_db(connection)
+
+    if not os.path.isfile(temp_db):
+        os.makedirs(temp_dir, exist_ok=True)
+        shutil.copy2(persist_db, temp_db)
+        
+def sync_temp_db_to_disk(connection=None):
+    if connection:
+        close_db(connection)
+
+    # atomic replace. Safer in case of power failure mid copying
+    tmp_backup = persist_db + ".tmp"
+    shutil.copy2(temp_db, tmp_backup)
+    os.replace(tmp_backup, persist_db)
+
+
+if __name__ == "__main__":
+    setup_initial_db()
