@@ -3,6 +3,7 @@
 
 {% block content %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/manage_users.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/manage_devices.css') }}">
 
     <div class="user_picture_wrapper">
       <img src="{{ user.picture }}" alt="Your Picture" class="user_picture">
@@ -38,14 +39,14 @@
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="email" value="{{ u.email }}">
             <input type="hidden" name="action" value="authorize">
-            <button type="submit" class="save_btn device_action_btn">Authorize</button>
+            <button type="submit" class="save_btn"><i class="fa-solid fa-thumbs-up"></i></button>
           </form>
 
           <form method="post" action="{{ url_for('manage_users_post') }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="email" value="{{ u.email }}">
             <input type="hidden" name="action" value="remove">
-            <button type="submit" class="save_btn device_action_btn">Remove</button>
+            <button type="submit" class="save_btn"><i class="fa-solid fa-trash-can"></i></button>
           </form>
         </div>
       </div>
@@ -80,23 +81,20 @@
         </div>
 
         <div class="update_buttons">
-          {% if a.email != user.email %}
-            <form method="post" action="{{ url_for('manage_users_post') }}">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-              <input type="hidden" name="email" value="{{ a.email }}">
-              <input type="hidden" name="action" value="remove">
-              <button type="submit" class="save_btn device_action_btn">Remove</button>
-            </form>
-          {% else %}
-            <p>Current user</p>
-          {% endif %}
-
           {% if a.authorized == 1 %}
             <form method="post" action="{{ url_for('manage_users_post') }}">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <input type="hidden" name="email" value="{{ a.email }}">
               <input type="hidden" name="action" value="make_admin">
-              <button type="submit" class="save_btn device_action_btn">Make Admin</button>
+              <button type="submit" class="save_btn"><i class="fa-solid fa-screwdriver-wrench"></i></button>
+            </form>
+          {% endif %}
+          {% if a.email != user.email %}
+            <form method="post" action="{{ url_for('manage_users_post') }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input type="hidden" name="email" value="{{ a.email }}">
+              <input type="hidden" name="action" value="remove">
+              <button type="submit" class="save_btn"><i class="fa-solid fa-trash-can"></i></button>
             </form>
           {% endif %}
         </div>

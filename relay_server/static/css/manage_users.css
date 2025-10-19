@@ -87,3 +87,6 @@
   from { transform: scale(0.7); opacity: 0; }
   to   { transform: scale(1); opacity: 1; }
 }
+.update_buttons .save_btn.remove_btn {
+    background-color: #b33;
+}
