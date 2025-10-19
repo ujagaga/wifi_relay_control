@@ -1,9 +1,8 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/complete_registration.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/complete_registration.css') }}">
 
-<div class="container">
     <h2>Registration</h2>
     <p>You are not a registered user. If you live in our building, please register.</p>
 
@@ -29,5 +28,4 @@
             <button type="submit" class="nav_btn">Submit</button>
         </div>
     </form>
-</div>
 {% endblock %}
