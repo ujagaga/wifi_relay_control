@@ -20,7 +20,7 @@
 
 .login_btn i{
     background-color: var(--accent-color);
-    padding: 3px;
+    padding: 0.2em 0.1em;
     border-radius: 8px;
     color: #fff;
 }
