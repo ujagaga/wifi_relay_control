@@ -39,14 +39,14 @@
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="email" value="{{ u.email }}">
             <input type="hidden" name="action" value="authorize">
-            <button type="submit" class="save_btn"><i class="fa-solid fa-thumbs-up"></i></button>
+            <button type="submit" title="Approve" class="save_btn"><i class="fa-solid fa-thumbs-up"></i></button>
           </form>
 
           <form method="post" action="{{ url_for('manage_users_post') }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="email" value="{{ u.email }}">
             <input type="hidden" name="action" value="remove">
-            <button type="submit" class="save_btn"><i class="fa-solid fa-trash-can"></i></button>
+            <button type="submit" title="Remove" class="save_btn"><i class="fa-solid fa-trash-can"></i></button>
           </form>
         </div>
       </div>
@@ -86,7 +86,9 @@
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <input type="hidden" name="email" value="{{ a.email }}">
               <input type="hidden" name="action" value="make_admin">
-              <button type="submit" class="save_btn"><i class="fa-solid fa-screwdriver-wrench"></i></button>
+              <button type="submit" title="Upgrade to Admin" class="save_btn">
+                <i class="fa-solid fa-screwdriver-wrench"></i>
+              </button>
             </form>
           {% endif %}
           {% if a.email != user.email %}
@@ -94,7 +96,7 @@
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <input type="hidden" name="email" value="{{ a.email }}">
               <input type="hidden" name="action" value="remove">
-              <button type="submit" class="save_btn"><i class="fa-solid fa-trash-can"></i></button>
+              <button type="submit" title="Remove" class="save_btn"><i class="fa-solid fa-trash-can"></i></button>
             </form>
           {% endif %}
         </div>

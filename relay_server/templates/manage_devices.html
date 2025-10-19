@@ -65,10 +65,10 @@
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
             <input type="hidden" name="device_name" value="{{ dev.name }}">
-            <button type="submit" name="action" value="authorize" class="save_btn">
+            <button type="submit" name="action" title="Approve" value="authorize" class="save_btn">
               <i class="fa-solid fa-thumbs-up"></i>
             </button>
-            <button type="submit" name="action" value="remove" class="save_btn" style="margin-top:0.5em;">
+            <button type="submit" name="action" title="Remove" value="remove" class="save_btn" style="margin-top:0.5em;">
               <i class="fa-solid fa-trash-can"></i>
             </button>
           </div>
@@ -121,10 +121,10 @@
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="device_name" value="{{ device.name }}">
 
-            <button type="submit" name="action" value="update_single" class="save_btn">
+            <button type="submit" name="action" title="Save" value="update_single" class="save_btn">
               <i class="fa-solid fa-floppy-disk"></i>
             </button>
-            <button type="submit" name="action" value="remove" class="save_btn" style="margin-top:0.5em;">
+            <button type="submit" name="action" title="Remove" value="remove" class="save_btn" style="margin-top:0.5em;">
               <i class="fa-solid fa-trash-can"></i>
             </button>
           </div>
@@ -142,7 +142,7 @@
     <form id="firmware_form" method="post" action="{{ url_for('upload_firmware') }}" enctype="multipart/form-data">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <input type="file" id="firmware_file" name="firmware_file" accept=".bin" required style="display:none;">
-      <label for="firmware_file" class="upload_label">
+      <label for="firmware_file" title="Upload firmware image" class="upload_label">
         <i class="fa-solid fa-upload"></i>
       </label>
     </form>
