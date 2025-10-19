@@ -1,31 +1,17 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
-  <title>{{ title }} - Users</title>
-  <link rel="icon" type="image/x-icon" href="static/favicon.ico">
-  <link rel="stylesheet" href="static/home.css"/>
-  <link rel="stylesheet" href="static/css/fontawesome.min.css" />
-  <link rel="stylesheet" href="static/css/solid.min.css" />
-</head>
-<body>
-  <!-- Image Modal -->
-  <div id="imgModal">
-    <span class="close">&times;</span>
-    <img id="modalImage" src="" alt="Zoomed image">
-  </div>
+<!-- templates/manage_users.html -->
+{% extends "base.html" %}
 
-  <div class="container">
+{% block content %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/manage_users.css') }}">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/manage_users.css') }}">
+
     <div class="user_picture_wrapper">
       <img src="{{ user.picture }}" alt="Your Picture" class="user_picture">
     </div>
 
     <nav class="admin_nav">
-      <a href="/" class="nav_btn">Home</a>
+      <a href="/" class="nav_btn"><i class="fa-solid fa-home"></i></a>
     </nav>
 
     <form method="get" action="{{ url_for('export_emails') }}">
@@ -121,11 +107,16 @@
     {% else %}
       <p>No authorized users.</p>
     {% endif %}
+
+
+  <!-- Image Modal -->
+  <div id="imgModal">
+    <span class="close">&times;</span>
+    <img id="modalImage" src="" alt="Zoomed image">
   </div>
 
   <div id="apartmentModal" class="modal" style="display:none;">
     <div class="modal-content">
-      <span class="close">&times;</span>
       <form method="post" action="{{ url_for('manage_users_post') }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="email" id="modal-email">
@@ -137,8 +128,6 @@
     </div>
   </div>
 
-</body>
-<script src="static/home.js"></script>
-<script src="static/manage_users.js"></script>
+<script src="{{ url_for('static', filename='js/manage_users.js') }}"></script>
 
-</html>
+{% endblock %}

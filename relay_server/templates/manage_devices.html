@@ -1,25 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
-  <title>{{ title }} - Devices</title>
-  <link rel="icon" type="image/x-icon" href="static/favicon.ico">
-  <link rel="stylesheet" href="static/home.css"/>
-  <link rel="stylesheet" href="static/css/fontawesome.min.css" />
-  <link rel="stylesheet" href="static/css/solid.min.css" />
-</head>
-<body>
-  <div class="container">
+<!-- templates/manage_devices.html -->
+{% extends "base.html" %}
+
+{% block content %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/manage_devices.css') }}">
+
     <div class="user_picture_wrapper">
       <img src="{{ user.picture }}" alt="Your Picture" class="user_picture">
     </div>
 
     <nav class="admin_nav">
-      <a href="/" class="nav_btn">Home</a>
+      <a href="/" class="nav_btn"><i class="fa-solid fa-home"></i></a>
     </nav>
 
     <div class="flash_message">
@@ -75,8 +65,12 @@
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
             <input type="hidden" name="device_name" value="{{ dev.name }}">
-            <button type="submit" name="action" value="authorize" class="save_btn device_action_btn">Authorize</button>
-            <button type="submit" name="action" value="remove" class="save_btn device_action_btn" style="margin-top:0.5em;">Remove</button>
+            <button type="submit" name="action" value="authorize" class="save_btn">
+              <i class="fa-solid fa-thumbs-up"></i>
+            </button>
+            <button type="submit" name="action" value="remove" class="save_btn" style="margin-top:0.5em;">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
           </div>
         </div>
       </form>
@@ -127,8 +121,12 @@
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="device_name" value="{{ device.name }}">
 
-            <button type="submit" name="action" value="update_single" class="save_btn device_action_btn">Save</button>
-            <button type="submit" name="action" value="remove" class="save_btn device_action_btn" style="margin-top:0.5em;">Remove</button>
+            <button type="submit" name="action" value="update_single" class="save_btn">
+              <i class="fa-solid fa-floppy-disk"></i>
+            </button>
+            <button type="submit" name="action" value="remove" class="save_btn" style="margin-top:0.5em;">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
           </div>
         </div>
       </form>
@@ -216,7 +214,6 @@
     <p>No firmware files uploaded yet.</p>
   {% endif %}
 
-  </div>
-</body>
-<script src="static/home.js"></script>
-</html>
+<script src="{{ url_for('static', filename='js/manage_devices.js') }}"></script>
+
+{% endblock %}

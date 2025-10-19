@@ -25,13 +25,6 @@ from werkzeug.utils import secure_filename
 
 sys.path.insert(0, os.path.dirname(__file__))
 
-logging.basicConfig(handlers=[RotatingFileHandler(os.path.join(database.temp_dir,'app.log'), maxBytes=65535, backupCount=1)],
-        level=logging.DEBUG,
-        format="[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s",
-        datefmt='%Y-%m-%dT%H:%M:%S')
-
-logger = logging.getLogger(__name__)
-
 UPLOAD_FOLDER = "firmware"
 ALLOWED_EXTENSIONS = ["bin"]
 
@@ -42,13 +35,31 @@ application.config['WTF_CSRF_SECRET_KEY'] = application.config['SECRET_KEY']
 application.config['APPLICATION_ROOT'] = '/'
 application.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
+file_handler = RotatingFileHandler(os.path.join(database.temp_dir, "app.log"), maxBytes=65535, backupCount=1)
+file_handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter(
+    "[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s",
+    datefmt='%Y-%m-%dT%H:%M:%S'
+)
+file_handler.setFormatter(formatter)
+# Always include file handler
+handlers = [file_handler]
+# If running in debug mode, also add console logs
+if application.debug:
+    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler.setLevel(logging.DEBUG)
+    console_handler.setFormatter(formatter)
+    handlers.append(console_handler)
+logging.basicConfig(level=logging.DEBUG, handlers=handlers)
+
+logger = logging.getLogger(__name__)
+
 csrf = CSRFProtect(application)
 
 CLIENT_SECRETS_FILE = "client_secret.json"
-IS_LOCAL = False
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-if IS_LOCAL:
+if application.debug:
     google = None
 else:
     if os.path.isfile(CLIENT_SECRETS_FILE):
@@ -137,7 +148,6 @@ def get_connected_devices_for_index(connection):
                             "reset_at": reset_at
                         })
 
-
     return connected_devices
 
 
@@ -160,11 +170,8 @@ def authorize():
 
 @application.route('/login', methods=['GET'])
 def login():
-    if IS_LOCAL:
-        # Generate a fake authorized user token automatically
+    if application.debug:
         token = helper.generate_token()
-        # Here you might want to add or update a special local user in DB
-        # For example:
         user_email = "local@localhost"
         user = database.get_user(connection=g.db, email=user_email)
         if not user:
@@ -183,8 +190,8 @@ def login():
 def oauth2callback():
     global google
 
-    if IS_LOCAL:
-        # Just redirect to index, since login is automatic in /login for local
+    if application.debug:
+        # Just redirect to index, since login is automatic in /login for debug
         return redirect(safe_url_for('index'))
 
     try:
@@ -745,8 +752,6 @@ def download_firmware(filename):
 
 
 if __name__ == "__main__":
-    # Disable Google auth for local development as it will not work without https
-    IS_LOCAL = True
     database.setup_initial_db()
     application.run(debug=True, host="0.0.0.0", port=5000)
 

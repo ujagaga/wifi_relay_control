@@ -1,11 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>{{ title }} - Registration</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}">
-</head>
-<body>
+{% extends "base.html" %}
+
+{% block content %}
 <div class="container">
     <h2>Registration</h2>
     <p>You are not a registered user. If you live in our building, please register.</p>
@@ -18,14 +13,14 @@
             <label for="apartment">Apartment Number:</label>
         </div>
         <div class="row">
-            <input type="text" name="apartment" id="apartment" required style="width: 100%; padding: 0.5rem; font-size: 1rem;">
+            <input type="text" name="apartment" id="apartment" required class="form_input">
         </div>
 
         <div class="row" style="margin-top: 1rem;">
             <label for="comment">Comment (optional):</label>
         </div>
         <div class="row">
-            <textarea name="comment" id="comment" rows="4" style="width: 100%; padding: 0.5rem; font-size: 1rem;"></textarea>
+            <textarea name="comment" id="comment" rows="4" class="form_input"></textarea>
         </div>
 
         <div class="row single" style="margin-top: 1.5rem;">
@@ -33,5 +28,4 @@
         </div>
     </form>
 </div>
-</body>
-</html>
+{% endblock %}
