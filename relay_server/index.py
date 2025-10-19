@@ -6,7 +6,7 @@ pip install flask authlib flask-wtf requests
 """
 
 from flask import (Flask, g, render_template, request, flash, redirect, make_response, Response,
-                   send_from_directory, url_for as flask_url_for)
+                   send_from_directory, abort, url_for as flask_url_for)
 import time
 import json
 import sys
@@ -729,6 +729,19 @@ def start_update():
 
     flash(f"Started update of {firmware} on {len(selected_devices)} devices.")
     return redirect(safe_url_for("manage_devices"))
+
+
+@application.route("/firmware/<filename>")
+def download_firmware(filename):
+    upload_folder = application.config["UPLOAD_FOLDER"]
+    safe_name = secure_filename(filename)
+    filepath = os.path.join(upload_folder, safe_name)
+
+    if not os.path.exists(filepath):
+        abort(404)
+
+    # Send the file with correct MIME type
+    return send_from_directory(upload_folder, safe_name, as_attachment=True, mimetype="application/octet-stream")
 
 
 if __name__ == "__main__":

@@ -21,3 +21,6 @@
     border-radius: 1em;
     padding: 1em;
 }
+.login_btn{
+  text-decoration: none !important;
+}
