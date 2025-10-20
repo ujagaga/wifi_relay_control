@@ -641,15 +641,34 @@ def manage_devices_post():
         label = request.form.get(f'{name}_label')
         sw_count = request.form.get(f'{name}_sw_count')
         reset_at = request.form.get(f'{name}_reset_at')
+
         try:
             sw_count = int(sw_count)
         except ValueError:
             sw_count = 1
+
         try:
             reset_at = int(reset_at)
         except ValueError:
             reset_at = settings.RESET_DEVS_AT
-        dev_data = {"label": label, "sw_count": sw_count, "reset_at": reset_at}
+
+        # --- NEW: collect relay mappings for each button ---
+        buttons = []
+        for i in range(1, sw_count + 1):
+            relay_val = request.form.get(f'{name}_relay_for_button_{i}')
+            try:
+                relay_id = int(relay_val)
+            except (TypeError, ValueError):
+                relay_id = i  # default 1→1, 2→2, etc.
+            buttons.append({"id": i, "relay_id": relay_id})
+
+        dev_data = {
+            "label": label,
+            "sw_count": sw_count,
+            "reset_at": reset_at,
+            "buttons": buttons
+        }
+
         database.update_device(connection=g.db, name=name, data=dev_data)
         flash(f"Device '{name}' updated!")
 

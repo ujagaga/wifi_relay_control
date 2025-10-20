@@ -9,8 +9,8 @@
 
   {% if admin %}
   <nav class="admin_nav">
-    <a href="{{ url_for('manage_devices') }}" class="nav_btn"><i class="fa-solid fa-dungeon"></i></a>
-    <a href="{{ url_for('manage_users') }}" class="nav_btn manage_users_btn">
+    <a href="{{ url_for('manage_devices') }}" class="nav_btn" title="Manage Devices"><i class="fa-solid fa-dungeon"></i></a>
+    <a href="{{ url_for('manage_users') }}" class="nav_btn manage_users_btn" title="Manage Users">
       <i class="fa-solid fa-user-tie"></i>
       {% if unauthorized_users|length > 0 %}
       <span class="red_dot"></span>

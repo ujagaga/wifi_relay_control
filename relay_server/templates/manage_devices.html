@@ -68,7 +68,7 @@
             <button type="submit" name="action" title="Approve" value="authorize" class="save_btn">
               <i class="fa-solid fa-thumbs-up"></i>
             </button>
-            <button type="submit" name="action" title="Remove" value="remove" class="save_btn" style="margin-top:0.5em;">
+            <button type="submit" name="action" title="Remove" value="remove" class="delete_btn" style="margin-top:2em;">
               <i class="fa-solid fa-trash-can"></i>
             </button>
           </div>
@@ -99,13 +99,6 @@
             <label for="{{ device.name }}_label">Label:</label>
             <input type="text" name="{{ device.name }}_label" id="{{ device.name }}_label" value="{{ device.data.label }}">
 
-            <label for="{{ device.name }}_sw_count">Buttons:</label>
-            <select name="{{ device.name }}_sw_count" id="{{ device.name }}_sw_count">
-              {% for i in range(1, 5) %}
-              <option value="{{ i }}" {% if device.data.sw_count == i %} selected {% endif %}>{{ i }}</option>
-              {% endfor %}
-            </select>
-
             <label for="{{ device.name }}_reset_at">Restart At (hour 0–23):</label>
             <input type="number"
                    name="{{ device.name }}_reset_at"
@@ -114,8 +107,32 @@
                    min="0"
                    max="23"
                    step="1">
-          </div>
 
+            <label for="{{ device.name }}_sw_count">Buttons:</label>
+            <select name="{{ device.name }}_sw_count" id="{{ device.name }}_sw_count">
+              {% for i in range(1, 5) %}
+              <option value="{{ i }}" {% if device.data.sw_count == i %} selected {% endif %}>{{ i }}</option>
+              {% endfor %}
+            </select>
+
+            <label>Button - Relay mapping:</label>
+            <div class="button_map">
+              {% for i in range(device.data.sw_count or 0) %}
+                <div class="button_row">
+                  <span>Button {{ i+1 }}</span>
+                  <select name="{{ device.name }}_relay_for_button_{{ i+1 }}">
+                    {% for r in range(1, 5) %}
+                      <option value="{{ r }}"
+                        {% if device.data.buttons and device.data.buttons[i].relay_id == r %}selected{% endif %}>
+                        Relay {{ r }}
+                      </option>
+                    {% endfor %}
+                  </select>
+                </div>
+              {% endfor %}
+            </div>
+
+          </div>
           <div class="update_buttons"
                {% if single_device_mode and device.name != 'main' %}style="display:none;"{% endif %}>
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -124,7 +141,7 @@
             <button type="submit" name="action" title="Save" value="update_single" class="save_btn">
               <i class="fa-solid fa-floppy-disk"></i>
             </button>
-            <button type="submit" name="action" title="Remove" value="remove" class="save_btn" style="margin-top:0.5em;">
+            <button type="submit" name="action" title="Remove" value="remove" class="delete_btn " style="margin-top:2em;">
               <i class="fa-solid fa-trash-can"></i>
             </button>
           </div>
@@ -168,8 +185,8 @@
             <form method="post" action="{{ url_for('delete_firmware') }}" style="display:inline;">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <input type="hidden" name="filename" value="{{ fw }}">
-              <button type="submit" class="save_btn" title="Delete Firmware" style="background-color:#b33;">
-                <i class="fa-solid fa-trash"></i>
+              <button type="submit" class="delete_btn" title="Delete Firmware">
+                <i class="fa-solid fa-trash-can"></i>
               </button>
             </form>
           </div>

@@ -106,3 +106,23 @@
 .upload_label i {
   font-size: 1.1em;
 }
+.button_map {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+.button_row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8f8f8;
+  padding: 0.1rem 0.6rem;
+  border-radius: 4px;
+}
+
+.button_row span, .button_row select {
+  font-weight: 500;
+  width: 50%;
+}

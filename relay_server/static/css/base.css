@@ -98,7 +98,13 @@ h1 {
 }
 
 .save_btn {
-  background-color: #007bff;
+    background-color: #007bff;
+}
+.delete_btn{
+    background-color: red;
+}
+
+.save_btn, .delete_btn{
   color: #fff;
   border: none;
   padding: 0.6em 1em;
@@ -107,11 +113,13 @@ h1 {
   text-align: center;
   font-size: 1em;
   transition: background 0.2s ease;
+  opacity: 0.8;
 }
 
-.save_btn:hover {
-  background-color: #0056b3;
+.save_btn:hover, .delete_btn:hover {
+  opacity: 1;
 }
+
 
 /* Footer */
 .footer {
