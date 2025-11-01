@@ -9,8 +9,8 @@
 #include <lwip/init.h>
 #include <lwip/dns.h>
 #include <lwip/ip_addr.h>
-#include "config.h"
 #include <user_interface.h>
+#include "config.h"
 
 static char myApName[32] = {0};    /* Array to form AP name based on read MAC */
 static char st_ssid[SSID_SIZE] = {0};    /* SSID to connect to */

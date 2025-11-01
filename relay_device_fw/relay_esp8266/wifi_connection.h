@@ -12,8 +12,6 @@ extern void WIFIC_setStPass(String new_pass);
 extern String WIFIC_getApList(void);
 extern String WIFIC_getStSSID(void);
 extern String WIFIC_getStPass(void);
-extern IPAddress WIFIC_getApIp(void);
-extern IPAddress WIFIC_getStIP(void);
 extern char* WIFIC_getDeviceName(void);
 extern void WIFIC_process(void);
 extern bool WIFIC_isApMode(void);

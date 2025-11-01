@@ -11,8 +11,6 @@
 #include "config.h"
 #include "relay_esp8266.h"
 #include "pinctrl.h"
-#include "ota.h"
-#include "web_socket.h"
 
 
 /* If we were writing HTML files, this would be the content. Here we use char arrays. */
@@ -194,12 +192,6 @@ static void showStatusPage(bool goToHome = false) {
   webServer->send(200, "text/html", response);   
 }
 
-static void startOtaUpdate(void){
-  String response = FPSTR(OTA_HTML);
-  webServer->send(200, "text/html; charset=iso-8859-1", response); 
-  webServer->handleClient(); 
-  OTA_init();    
-}
 
 static void showRedirectPage(void){  
   showNotFound();
@@ -281,7 +273,7 @@ void HTTP_SERVER_init(void){
   webServer->on("/selectap", selectAP);
   webServer->on("/trigger", trigger);
   webServer->on("/wifisave", saveWiFi);
-  webServer->on("/update", startOtaUpdate);  
+  // webServer->on("/update", startOtaUpdate);  
   webServer->onNotFound(showStartPage);
   
   webServer->begin();

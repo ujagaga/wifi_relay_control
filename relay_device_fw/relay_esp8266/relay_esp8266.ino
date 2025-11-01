@@ -9,11 +9,8 @@
 #include "wifi_connection.h"
 #include "config.h"
 #include "pinctrl.h"
-#include "ota.h"
-#include "web_socket.h"
 #include "http_server.h"
 #include "http_client.h"
-#include "mqtt_sub.h"
 
 
 static String statusMessage = "";         /* This is set and requested from other modules. */
@@ -33,23 +30,19 @@ void setup(void) {
   //ESP.eraseConfig();
   PINCTRL_init(); 
   WIFIC_init();
-  WS_init();  
   HTTP_SERVER_init();
 }
 
 void loop(void) { 
-  if(OTA_updateInProgress()){
-    OTA_process();
-  }else{
+  // if(OTA_updateInProgress()){
+
     if(WIFIC_isApMode()){
       HTTP_SERVER_process();
-      WS_process();
     }else{
       HTTP_CLIENT_process();    
-      MQTT_process();
     }   
     
     WIFIC_process();       
     PINCTRL_process();    
-  } 
+  // } 
 }

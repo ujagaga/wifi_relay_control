@@ -321,19 +321,34 @@ def device_report():
                 restarted_at_epoch = current_timestamp
                 do_restart_flag = True
 
-    if not do_restart_flag:
-        # Check if unlock command is triggered
-        if dev_command:
-            current_timestamp = int(time.time())
+    # Process pending commands
+    if not do_restart_flag and dev_command:
+        # Firmware update command
+        update_at = dev_command.get("update_at")
+        firmware_id = dev_command.get("firmware_id")
+
+        if update_at and firmware_id:
+            # Only act on update if issued recently
+            if 0 <= current_timestamp - int(update_at) < (settings.LIFESIGN_TIMEOUT * 2):
+                response = json.dumps({
+                    "command": "update",
+                    "firmware": f"/firmware/{firmware_id}"
+                })
+                # mark command as handled
+                database.update_device(connection=g.db, name=name, command=None)
+            else:
+                # Expired command
+                database.update_device(connection=g.db, name=name, command=None)
+
+        else:
+            # Unlock command
             unlock_epoch_time = dev_command.get("unlocked_at", 0)
             unlock_interval = current_timestamp - unlock_epoch_time
-            if (unlock_interval > 0) and (unlock_interval < 8):
-                # Do unlock the device
+            if 0 < unlock_interval < 8:
                 response = json.dumps({
                     "relay_id": dev_command.get("relay_id", 0),
                     "command": "unlock"
                 })
-
 
     # Save ping and restart time as ISO
     database.update_device(
