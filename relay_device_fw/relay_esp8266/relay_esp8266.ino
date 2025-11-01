@@ -34,15 +34,12 @@ void setup(void) {
 }
 
 void loop(void) { 
-  // if(OTA_updateInProgress()){
-
-    if(WIFIC_isApMode()){
-      HTTP_SERVER_process();
-    }else{
-      HTTP_CLIENT_process();    
-    }   
-    
-    WIFIC_process();       
-    PINCTRL_process();    
-  // } 
+  if(WIFIC_isApMode()){
+    HTTP_SERVER_process();
+  }else{
+    HTTP_CLIENT_process();
+  }   
+  
+  WIFIC_process();
+  PINCTRL_process();
 }
