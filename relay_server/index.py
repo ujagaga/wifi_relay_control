@@ -332,7 +332,8 @@ def device_report():
             if 0 <= current_timestamp - int(update_at) < (settings.LIFESIGN_TIMEOUT * 2):
                 response = json.dumps({
                     "command": "update",
-                    "firmware": f"/firmware/{firmware_id}"
+                    "firmware": f"/firmware/{firmware_id}",
+                    "time": current_timestamp,
                 })
         else:
             # Unlock command
@@ -341,7 +342,8 @@ def device_report():
             if 0 < unlock_interval < (settings.LIFESIGN_TIMEOUT * 2):
                 response = json.dumps({
                     "relay_id": helper.to_int(dev_command.get("relay_id", 0)),
-                    "command": "unlock"
+                    "command": "unlock",
+                    "time": current_timestamp
                 })
 
     # Save ping and restart time as ISO
