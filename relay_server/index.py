@@ -807,6 +807,6 @@ def download_firmware(filename):
 
 if __name__ == "__main__":
     database.setup_initial_db()
-    application.run(debug=True, host="0.0.0.0", port=5000)
+    application.run(debug=False, host="0.0.0.0", port=5000)
 
 
