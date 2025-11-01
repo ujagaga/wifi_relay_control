@@ -257,18 +257,26 @@ def index():
         return redirect(safe_url_for('login'))
 
     connected_devices = get_connected_devices_for_index(g.db)
-
     unauthorized_users = database.get_user(connection=g.db, authorized=0)
-    return render_template('home.html',
-                           connected_devices=connected_devices,
-                           admin=user.get("authorized", 0) > 1,
-                           unauthorized_users=unauthorized_users,
-                           user=user,
-                           title=settings.APP_TITLE,
-                           url_for=safe_url_for)
 
+    # Render the template
+    resp = make_response(render_template(
+        'home.html',
+        connected_devices=connected_devices,
+        admin=user.get("authorized", 0) > 1,
+        unauthorized_users=unauthorized_users,
+        user=user,
+        title=settings.APP_TITLE,
+        url_for=safe_url_for
+    ))
 
-from flask import make_response
+    # Add no-cache headers
+    resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    resp.headers["Pragma"] = "no-cache"
+    resp.headers["Expires"] = "0"
+
+    return resp
+
 
 @application.route('/device_report', methods=['GET'])
 def device_report():
