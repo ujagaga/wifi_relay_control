@@ -29,7 +29,7 @@ void reportDeviceRequest() {
     String response;
     unsigned long timeout = millis();
     bool headers_done = false;
-    while (client.connected() && millis() - timeout < 5000) {
+    while (client.connected() && millis() - timeout < 2000) {
       while (client.available()) {
         String line = client.readStringUntil('\n');
         if (!headers_done) {

@@ -268,13 +268,19 @@ def index():
                            url_for=safe_url_for)
 
 
+from flask import make_response
+
 @application.route('/device_report', methods=['GET'])
 def device_report():
     args = request.args
     name = args.get("name")
 
     if not name:
-        return "Missing 'name' parameter", 400
+        resp = make_response("Missing 'name' parameter", 400)
+        resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        resp.headers["Pragma"] = "no-cache"
+        resp.headers["Expires"] = "0"
+        return resp
 
     current_timestamp = int(time.time())
     relay_device = database.get_device(connection=g.db, name=name)
@@ -283,9 +289,14 @@ def device_report():
 
         if len(unauthorized_devs) < 2:
             database.add_device(connection=g.db, name=name, ping_at=current_timestamp)
-            return "Unauthorized", 401
+            resp = make_response("Unauthorized", 401)
         else:
-            return "Unauthorized (Too many)", 401
+            resp = make_response("Unauthorized (Too many)", 401)
+
+        resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        resp.headers["Pragma"] = "no-cache"
+        resp.headers["Expires"] = "0"
+        return resp
 
     authorized = relay_device["authorized"]
     if authorized < 1:
@@ -294,8 +305,13 @@ def device_report():
             name=name,
             ping_at=current_timestamp
         )
-        return "Unauthorized", 401
+        resp = make_response("Unauthorized", 401)
+        resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        resp.headers["Pragma"] = "no-cache"
+        resp.headers["Expires"] = "0"
+        return resp
 
+    # --- Process commands as before ---
     restarted_at_iso = relay_device.get("restarted_at")
     if restarted_at_iso and restarted_at_iso != "None":
         try:
@@ -314,21 +330,17 @@ def device_report():
             target_reset_hour = int(dev_data.get("reset_at", settings.RESET_DEVS_AT))
             utc_now = datetime.now(timezone.utc)
             if utc_now.hour == target_reset_hour:
-                # time to restart the device
                 response = json.dumps({
                     "command": "restart"
                 })
                 restarted_at_epoch = current_timestamp
                 do_restart_flag = True
 
-    # Process pending commands
     if not do_restart_flag and dev_command:
-        # Firmware update command
         update_at = dev_command.get("update_at")
         firmware_id = dev_command.get("firmware_id")
 
         if update_at and firmware_id:
-            # Only act on update if issued recently
             if 0 <= current_timestamp - int(update_at) < (settings.LIFESIGN_TIMEOUT * 2):
                 response = json.dumps({
                     "command": "update",
@@ -336,7 +348,6 @@ def device_report():
                     "time": current_timestamp,
                 })
         else:
-            # Unlock command
             unlock_epoch_time = dev_command.get("unlocked_at", 0)
             unlock_interval = current_timestamp - unlock_epoch_time
             if 0 < unlock_interval < (settings.LIFESIGN_TIMEOUT * 2):
@@ -346,7 +357,6 @@ def device_report():
                     "time": current_timestamp
                 })
 
-    # Save ping and restart time as ISO
     database.update_device(
         connection=g.db,
         name=name,
@@ -355,7 +365,12 @@ def device_report():
         command=""
     )
 
-    return response, 200
+    # --- Wrap response with no-cache headers ---
+    resp = make_response(response, 200)
+    resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    resp.headers["Pragma"] = "no-cache"
+    resp.headers["Expires"] = "0"
+    return resp
 
 
 @application.route('/unlock', methods=['GET'])
