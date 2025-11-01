@@ -106,7 +106,7 @@ void reportDeviceRequest() {
 
 void HTTP_CLIENT_process()
 {    
-  if(((millis() - lastConnectAtemptTime) > (UPDATE_TIMEOUT  + random(1000))) || (lastConnectAtemptTime == 0)){
+  if(((millis() - lastConnectAtemptTime) > (UPDATE_TIMEOUT  + random(100))) || (lastConnectAtemptTime == 0)){
     reportDeviceRequest();    
   } 
 }

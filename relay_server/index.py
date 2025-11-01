@@ -344,15 +344,13 @@ def device_report():
                     "command": "unlock"
                 })
 
-        # mark command as handled
-        database.update_device(connection=g.db, name=name, command=None)
-
     # Save ping and restart time as ISO
     database.update_device(
         connection=g.db,
         name=name,
         ping_at=current_timestamp,
-        restarted_at=restarted_at_epoch
+        restarted_at=restarted_at_epoch,
+        command=""
     )
 
     return response, 200
