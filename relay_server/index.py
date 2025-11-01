@@ -334,21 +334,18 @@ def device_report():
                     "command": "update",
                     "firmware": f"/firmware/{firmware_id}"
                 })
-                # mark command as handled
-                database.update_device(connection=g.db, name=name, command=None)
-            else:
-                # Expired command
-                database.update_device(connection=g.db, name=name, command=None)
-
         else:
             # Unlock command
             unlock_epoch_time = dev_command.get("unlocked_at", 0)
             unlock_interval = current_timestamp - unlock_epoch_time
-            if 0 < unlock_interval < 8:
+            if 0 < unlock_interval < (settings.LIFESIGN_TIMEOUT * 2):
                 response = json.dumps({
                     "relay_id": dev_command.get("relay_id", 0),
                     "command": "unlock"
                 })
+
+        # mark command as handled
+        database.update_device(connection=g.db, name=name, command=None)
 
     # Save ping and restart time as ISO
     database.update_device(

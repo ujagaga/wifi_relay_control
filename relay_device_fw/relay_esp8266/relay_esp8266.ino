@@ -11,7 +11,7 @@
 #include "pinctrl.h"
 #include "http_server.h"
 #include "http_client.h"
-
+#include "web_socket.h"
 
 static String statusMessage = "";         /* This is set and requested from other modules. */
 
@@ -30,16 +30,18 @@ void setup(void) {
   //ESP.eraseConfig();
   PINCTRL_init(); 
   WIFIC_init();
+  WS_init();  
   HTTP_SERVER_init();
 }
 
 void loop(void) { 
   if(WIFIC_isApMode()){
     HTTP_SERVER_process();
+WS_process();
   }else{
     HTTP_CLIENT_process();
-  }   
-  
+  }     
+
   WIFIC_process();
   PINCTRL_process();
 }
