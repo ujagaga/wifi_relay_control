@@ -17,7 +17,7 @@ void reportDeviceRequest() {
   WiFiClient client;
   if (client.connect(REPORT_URL, 80)) {
     const char* deviceName = WIFIC_getDeviceName();
-    String path = "/device_report?name=" + String(deviceName);
+    String path = "/device_report?name=" + String(deviceName) + "&t=" + String(millis());
 
     // Send HTTP GET request
     client.print(String("GET ") + path + " HTTP/1.1\r\n" +
