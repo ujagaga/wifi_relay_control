@@ -5,5 +5,5 @@ cd $SCRIPT_DIR
 
 source .venv/bin/activate
 python3 database.py
-python3 index.py
-# gunicorn -w 2 -b 0.0.0.0:5000 index:application
+#python3 index.py
+gunicorn -w 1 -b 0.0.0.0:5000 index:application
