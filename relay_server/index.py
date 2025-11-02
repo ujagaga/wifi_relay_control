@@ -376,11 +376,11 @@ def device_report():
     response = response + "\n"
 
     # --- Wrap response with no-cache headers ---
-    resp = make_response(response, 200)
-    resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
-    resp.headers["Pragma"] = "no-cache"
-    resp.headers["Expires"] = "0"
-    return resp
+    # resp = make_response(response, 200)
+    # resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    # resp.headers["Pragma"] = "no-cache"
+    # resp.headers["Expires"] = "0"
+    return response
 
 
 @application.route('/unlock', methods=['GET'])
