@@ -19,7 +19,7 @@ static const char HTML_BEGIN[] PROGMEM = R"(
 <html>
   <head>
     <meta name = "viewport" content = "width = device-width, initial-scale = 1.0, maximum-scale = 1.0, user-scalable=0">
-    <title>Zaric Gate</title>
+    <title>Shtef Gate</title>
     <style>
       body { background-color: white; font-family: Arial, Helvetica, Sans-Serif; Color: #000000; }
       .contain{width: 100%;}
@@ -137,15 +137,6 @@ static const char REDIRECT_HTML[] PROGMEM = R"(
 </script> 
 )";
 
-static const char OTA_HTML[] PROGMEM = R"(
-<html><head> <title>OTA Update</title></head>
-<body>
-  <h1>OTA Update</h1>
-  <p>Starting the update server.</p>
-  <p>If no update starts in 5 minutes, will stop the update server and restore default functionallity.</p>
-</body>
-</html>
-)";
 
 /* Declaring a web server object. */
 ESP8266WebServer* webServer = nullptr;
@@ -238,7 +229,7 @@ static void saveWiFi(void){
   }else{       
     http_statusMessage = "Saving settings and switching to AP mode only.";    
   }
-  http_statusMessage += "<br>If you can not connect to this device 20 seconds from now, please, reset it.";
+  http_statusMessage += "<br>Please disconnect from this WiFi Access Point...";
 
   MAIN_setStatusMsg(http_statusMessage);
   showStatusPage();
