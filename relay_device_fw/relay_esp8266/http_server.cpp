@@ -19,7 +19,7 @@ static const char HTML_BEGIN[] PROGMEM = R"(
 <html>
   <head>
     <meta name = "viewport" content = "width = device-width, initial-scale = 1.0, maximum-scale = 1.0, user-scalable=0">
-    <title>Zaric Gate</title>
+    <title>VM120 Portal</title>
     <style>
       body { background-color: white; font-family: Arial, Helvetica, Sans-Serif; Color: #000000; }
       .contain{width: 100%;}
