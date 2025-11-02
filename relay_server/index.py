@@ -398,7 +398,7 @@ def unlock():
                 dev_data = device.get("data")
                 if dev_data:
                     buttons = dev_data.get("buttons", [{"id": 1, "relay_id": 1}, {"id": 2, "relay_id": 2}, {"id": 3, "relay_id": 3}, {"id": 4, "relay_id": 4}])
-                    button_map = buttons[button_index]
+                    button_map = buttons[button_index - 1]
                     relay_id = button_map.get("relay_id")
                 else:
                     relay_id = button_index
