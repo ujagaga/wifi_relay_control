@@ -68,6 +68,8 @@ def init_database(connection):
 
 
 def open_db(db_path=temp_db):
+    if not os.path.isfile(temp_db):
+        shutil.copy2(persist_db, temp_db)
     connection = sqlite3.connect(db_path)
     connection.row_factory = sqlite3.Row
     return connection
