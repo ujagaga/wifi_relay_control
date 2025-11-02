@@ -17,7 +17,7 @@ void reportDeviceRequest() {
   WiFiClient client;
   if (client.connect(REPORT_URL, 80)) {
     const char* deviceName = WIFIC_getDeviceName();
-    String path = "/device_report?name=" + String(deviceName) + "&t=" + String(millis());
+    String path = "/device_report?name=" + String(deviceName);
 
     // Send HTTP GET request
     client.print(String("GET ") + path + " HTTP/1.1\r\n" +
@@ -29,7 +29,7 @@ void reportDeviceRequest() {
     String response;
     unsigned long timeout = millis();
     bool headers_done = false;
-    while (client.connected() && millis() - timeout < 2000) {
+    while (client.connected() && millis() - timeout < 1000) {
       while (client.available()) {
         String line = client.readStringUntil('\n');
         if (!headers_done) {
@@ -45,7 +45,7 @@ void reportDeviceRequest() {
     client.stop();
 
     response.trim();
-    Serial.println("Server response:");
+    Serial.println("RX:");
     Serial.println(response);
 
     // --- Parse response ---
