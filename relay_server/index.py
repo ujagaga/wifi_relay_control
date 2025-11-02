@@ -336,7 +336,7 @@ def device_report():
         firmware_id = dev_command.get("firmware_id")
 
         if update_at and firmware_id:
-            if 0 <= current_timestamp - int(update_at) < (settings.LIFESIGN_TIMEOUT * 2):
+            if 0 <= current_timestamp - int(update_at) < settings.LIFESIGN_TIMEOUT:
                 response = json.dumps({
                     "command": "update",
                     "firmware": f"/firmware/{firmware_id}",
@@ -345,7 +345,7 @@ def device_report():
         else:
             unlock_epoch_time = dev_command.get("unlocked_at", 0)
             unlock_interval = current_timestamp - unlock_epoch_time
-            if 0 < unlock_interval < (settings.LIFESIGN_TIMEOUT * 2):
+            if unlock_interval < settings.LIFESIGN_TIMEOUT:
                 response = json.dumps({
                     "relay_id": helper.to_int(dev_command.get("relay_id", 0)),
                     "command": "unlock",
