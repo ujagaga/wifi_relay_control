@@ -199,28 +199,37 @@ void WIFIC_init(void){
 }
 
 void WIFIC_process(void) {
-  if (apMode && 
-      ((millis() - apModeAttempTime) > (AP_MODE_TIMEOUT_S * 1000)) && 
-      (st_ssid[0] != 0)) {
+  static unsigned long lastScanTime = 0;
+  const unsigned long scanInterval = 5000; // 5 seconds
 
-    if (wifi_softap_get_station_num() > 0) {
-      Serial.println("Clients connected — AP mode continues.");
-      apModeAttempTime = millis(); // Reset timer
-      return; // Stay in AP mode
+  if (apMode) {
+    unsigned long now = millis();
+
+    // If timeout expired or we’re ready for a retry
+    if ((now - apModeAttempTime) > (AP_MODE_TIMEOUT_S * 1000) || 
+        (now - lastScanTime) > scanInterval) {
+
+      // Reset periodic scan timer
+      lastScanTime = now;
+
+      if (wifi_softap_get_station_num() > 0) {
+        Serial.println("Clients connected — AP mode continues.");
+        apModeAttempTime = now; // reset main AP timeout
+        return;
+      }
+
+      Serial.println("No clients — scanning for known SSID...");
+
+      String ssidString = String(st_ssid);
+      String apList = WIFIC_getApList();
+      Serial.println(apList);
+
+      if (apList.indexOf(ssidString) != -1) {
+        Serial.printf("Found saved SSID '%s', switching to STA mode...\n", ssidString.c_str());
+        WIFIC_stationMode();
+      } else {
+        Serial.printf("Saved SSID '%s' not found, will retry in 5 seconds.\n", ssidString.c_str());
+      }
     }
-
-    Serial.println("No clients — checking for known SSID...");
-
-    String ssidString = String(st_ssid);
-    String apList = WIFIC_getApList();
-    int index = apList.indexOf(ssidString);
-
-    Serial.println(apList);
-
-    if (index != -1) {
-      WIFIC_stationMode();
-    }
-
-    apModeAttempTime = millis();
   }
 }
