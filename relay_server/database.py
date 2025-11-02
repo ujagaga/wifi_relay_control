@@ -14,7 +14,6 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 persist_db = os.path.join(script_dir, settings.DB_NAME)
 temp_dir = os.path.join("/dev", "shm", settings.APP_TITLE)
 temp_db = os.path.join(temp_dir, settings.DB_NAME)
-os.makedirs(temp_dir, exist_ok=True)
 
 
 def check_table_exists(connection, tablename):
@@ -69,6 +68,7 @@ def init_database(connection):
 
 def open_db(db_path=temp_db):
     if not os.path.isfile(temp_db):
+        os.makedirs(temp_dir, exist_ok=True)
         shutil.copy2(persist_db, temp_db)
     connection = sqlite3.connect(db_path)
     connection.row_factory = sqlite3.Row
@@ -336,6 +336,8 @@ def delete_device(connection, name: str):
 
 
 def setup_initial_db():
+    os.makedirs(temp_dir, exist_ok=True)
+
     if not os.path.isfile(persist_db):
         connection = open_db(persist_db)
         init_database(connection)
