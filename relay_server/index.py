@@ -284,11 +284,7 @@ def device_report():
     name = args.get("name")
 
     if not name:
-        resp = make_response("Missing 'name' parameter", 400)
-        resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
-        resp.headers["Pragma"] = "no-cache"
-        resp.headers["Expires"] = "0"
-        return resp
+        return "Missing 'name' parameter", 400
 
     current_timestamp = int(time.time())
     relay_device = database.get_device(connection=g.db, name=name)
@@ -297,14 +293,9 @@ def device_report():
 
         if len(unauthorized_devs) < 2:
             database.add_device(connection=g.db, name=name, ping_at=current_timestamp)
-            resp = make_response("Unauthorized", 401)
+            return "Unauthorized", 401
         else:
-            resp = make_response("Unauthorized (Too many)", 401)
-
-        resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
-        resp.headers["Pragma"] = "no-cache"
-        resp.headers["Expires"] = "0"
-        return resp
+            return "Unauthorized (Too many)", 401
 
     authorized = relay_device["authorized"]
     if authorized < 1:
@@ -313,13 +304,8 @@ def device_report():
             name=name,
             ping_at=current_timestamp
         )
-        resp = make_response("Unauthorized", 401)
-        resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
-        resp.headers["Pragma"] = "no-cache"
-        resp.headers["Expires"] = "0"
-        return resp
+        return "Unauthorized", 401
 
-    # --- Process commands as before ---
     restarted_at_iso = relay_device.get("restarted_at")
     if restarted_at_iso and restarted_at_iso != "None":
         try:
@@ -338,6 +324,7 @@ def device_report():
             target_reset_hour = int(dev_data.get("reset_at", settings.RESET_DEVS_AT))
             utc_now = datetime.now(timezone.utc)
             if utc_now.hour == target_reset_hour:
+                # time to restart the device
                 response = json.dumps({
                     "command": "restart"
                 })
@@ -380,7 +367,7 @@ def device_report():
     # resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
     # resp.headers["Pragma"] = "no-cache"
     # resp.headers["Expires"] = "0"
-    return response
+    return response, 200
 
 
 @application.route('/unlock', methods=['GET'])
