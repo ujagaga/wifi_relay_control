@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SERVICE_NAME=gate_server.service
+SERVICE_NAME=vm120_server.service
 SERVICE_FILE=/etc/systemd/system/$SERVICE_NAME
 
 # --- Installation Section ---
@@ -50,7 +50,7 @@ fi
 echo "Creating systemd service file: $SERVICE_FILE"
 cat <<EOF > "$PWD/$SERVICE_NAME"
 [Unit]
-Description=Office Server
+Description=VM120 Server
 After=network-online.target
 Wants=network-online.target
 StartLimitIntervalSec=0
