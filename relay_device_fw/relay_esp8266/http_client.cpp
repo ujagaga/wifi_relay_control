@@ -17,15 +17,16 @@ void reportDeviceRequest() {
   if (WiFi.status() != WL_CONNECTED) return;
 
   HTTPClient http;
+  WiFiClient client;
   String url = String("http://") + REPORT_URL + "/device_report?name=" + WIFIC_getDeviceName();
 
-  http.begin(url);
+  http.begin(client, url);
   int httpCode = http.GET();
 
   if (httpCode > 0) {
     String response = http.getString();
     response.trim();
-    Serial.println("RX:");
+    Serial.print("RX:");
     Serial.println(response);
 
     if (response.startsWith("{")) {
@@ -41,11 +42,25 @@ void reportDeviceRequest() {
             if (fw_path && strlen(fw_path) > 0) {
               String fwUrl = String("http://") + REPORT_URL + String(fw_path);
               Serial.println("Starting OTA update from: " + fwUrl);
-              t_httpUpdate_return ret = ESPhttpUpdate.update(WiFiClient(), fwUrl);
-              if (ret == HTTP_UPDATE_FAILED)
-                Serial.printf("OTA failed: %s\n", ESPhttpUpdate.getLastErrorString().c_str());
+
+              WiFiClient updateClient;  // must be a named variable, not temporary
+              t_httpUpdate_return ret = ESPhttpUpdate.update(updateClient, fwUrl);
+
+              switch (ret) {
+                case HTTP_UPDATE_FAILED:
+                  Serial.printf("OTA failed, error (%d): %s\n",
+                                ESPhttpUpdate.getLastError(),
+                                ESPhttpUpdate.getLastErrorString().c_str());
+                  break;
+                case HTTP_UPDATE_NO_UPDATES:
+                  Serial.println("No update available.");
+                  break;
+                case HTTP_UPDATE_OK:
+                  Serial.println("OTA OK, rebooting...");
+                  break;  // reboot happens automatically
+              }
             }
-          } else if (strcmp(cmd, "restart") == 0) {
+          }else if (strcmp(cmd, "restart") == 0) {
             Serial.println("Restart command received.");
             ESP.restart();
           }
@@ -57,6 +72,7 @@ void reportDeviceRequest() {
   }
 
   http.end();
+  lastConnectAtemptTime = millis();
 }
 
 

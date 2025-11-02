@@ -206,15 +206,14 @@ void WIFIC_process(void) {
     unsigned long now = millis();
 
     // If timeout expired or we’re ready for a retry
-    if ((now - apModeAttempTime) > (AP_MODE_TIMEOUT_S * 1000) || 
+    if ((now - apModeAttempTime) > (AP_MODE_TIMEOUT_S * 1000) && 
         (now - lastScanTime) > scanInterval) {
 
       // Reset periodic scan timer
       lastScanTime = now;
 
       if (wifi_softap_get_station_num() > 0) {
-        Serial.println("Clients connected — AP mode continues.");
-        apModeAttempTime = now; // reset main AP timeout
+        Serial.println("Clients connected — AP mode continues.");        
         return;
       }
 
@@ -225,6 +224,7 @@ void WIFIC_process(void) {
       Serial.println(apList);
 
       if (apList.indexOf(ssidString) != -1) {
+        apModeAttempTime = now; // reset main AP timeout
         Serial.printf("Found saved SSID '%s', switching to STA mode...\n", ssidString.c_str());
         WIFIC_stationMode();
       } else {
