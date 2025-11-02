@@ -13,7 +13,7 @@
 
 // 5 minutes to start the OTA update. If not, stop the service.
 #define UPDATE_TIMEOUT          (2000ul)
-#define REPORT_URL              "reverse_http_tunnel_http.url" // E.G. "mywebsite.com" without http://
+#define REPORT_URL              "vm120.radinaradionica.com" // E.G. "mywebsite.com" without http://
 
 #define AP_NAME_PREFIX          "VM120_sw_" // Will be appended by device MAC
 

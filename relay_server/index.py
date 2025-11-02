@@ -368,7 +368,7 @@ def device_report():
 @application.route('/unlock', methods=['GET'])
 def unlock():
     args = request.args
-    relay_index = args.get("id")
+    button_index = helper.to_int(args.get("id"))
     device_name = args.get("name")
 
     token = request.cookies.get('token')
@@ -395,9 +395,17 @@ def unlock():
         for device in connected_devices:
             if device["name"] != "main":
                 current_timestamp = int(time.time())
+                dev_data = device.get("data")
+                if dev_data:
+                    buttons = dev_data.get("buttons", [{"id": 1, "relay_id": 1}, {"id": 2, "relay_id": 2}, {"id": 3, "relay_id": 3}, {"id": 4, "relay_id": 4}])
+                    button_map = buttons[button_index]
+                    relay_id = button_map.get("relay_id") - 1
+                else:
+                    relay_id = button_index
+
                 command = json.dumps({
                     "unlocked_at": current_timestamp,
-                    "relay_id": relay_index
+                    "relay_id": relay_id
                 })
                 database.update_device(connection=g.db, name=device["name"], command=command)
                 dev_found = True
@@ -671,7 +679,6 @@ def manage_devices_post():
         except ValueError:
             reset_at = settings.RESET_DEVS_AT
 
-        # --- NEW: collect relay mappings for each button ---
         buttons = []
         for i in range(1, sw_count + 1):
             relay_val = request.form.get(f'{name}_relay_for_button_{i}')
