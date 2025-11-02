@@ -1,21 +1,21 @@
-MQTT_BROKER = "localhost"           # or your broker IP
-MQTT_PORT = 1883                    # default MQTT port. I use 50000 because my hosting provider does not allow outbound to 1883
-MQTT_TOPIC = "my/devices/unlock"    # your chosen topic
-MQTT_USER = "your_mqtt_username"
-MQTT_PASS = "your_mqtt_password"
+APP_TITLE = "Gate Server"
+APARTMENT_BUILDING_MODE = True                  # Set this to False if you need the family house mode. The users will not have to register and add their apartment number.
+SUPER_ADMIN = "admin@email.com"                 # Set the admin email to receive notification when a new user attempts to login
+
+LIFESIGN_TIMEOUT = 30
+MAX_COOKIE_AGE = 60 * 60 * 24 *30
+RESET_DEVS_AT = 3                               # Reset devices at 3 AM so they re-connect to WiFi
 
 SMTP_SERVER = "your smtp server without ssl"
 SMTP_PORT = 587
 SMTP_USER = "account_mail@smtp.server"
 SMTP_PASS = "user_account_password"
 
-APP_TITLE = "Gate Server"
-APARTMENT_BUILDING_MODE = True                  # Set this to False if you need the family house mode. The users will not have to register and add their apartment number.
-
-
 APP_SECRET_KEY = 'SomeSuperSecretKey123'        # Used for flask secure communication
-LIFESIGN_TIMEOUT = 60 * 11                      # expect devices to ping the server at intervals less than 11 minutes
+LIFESIGN_TIMEOUT = 30                           # expect devices to ping the server at intervals less than 30s
 MAX_COOKIE_AGE = 60 * 60 * 24 * 30              # If you use the same browser, it will be 30 days until you are asked to login
 RESET_DEVS_AT = 3                               # Reset devices at 3 AM so they re-connect to WiFi to renew the IP address lease
 
 DB_NAME = "database.db"
+
+
