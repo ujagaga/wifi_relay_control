@@ -273,7 +273,6 @@ void HTTP_SERVER_init(void){
   webServer->on("/selectap", selectAP);
   webServer->on("/trigger", trigger);
   webServer->on("/wifisave", saveWiFi);
-  // webServer->on("/update", startOtaUpdate);  
   webServer->onNotFound(showStartPage);
   
   webServer->begin();
