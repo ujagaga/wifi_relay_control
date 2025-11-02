@@ -9,7 +9,6 @@
 #include <lwip/init.h>
 #include <lwip/dns.h>
 #include <lwip/ip_addr.h>
-// #include <user_interface.h>
 #include "config.h"
 
 static char myApName[32] = {0};    /* Array to form AP name based on read MAC */
@@ -70,7 +69,7 @@ void WIFIC_APMode(void){
 
   WiFi.mode(WIFI_AP);  
   WiFi.begin();
-  
+
   String ApName = AP_NAME_PREFIX + WiFi.macAddress();
   ApName.toCharArray(myApName, ApName.length() + 1); 
 
@@ -87,7 +86,7 @@ void WIFIC_APMode(void){
   apModeAttempTime = millis();
 }
 
-void WIFIC_stationMode(void){   
+void WIFIC_stationMode(void){
   Serial.printf("\n\nTrying STA mode with [%s] and [%s]\r\n", st_ssid, st_pass);
 
   bool useStaticIp = checkValidIp(stationIP);
