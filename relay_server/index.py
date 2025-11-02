@@ -398,8 +398,8 @@ def unlock():
                 dev_data = device.get("data")
                 if dev_data:
                     buttons = dev_data.get("buttons", [{"id": 1, "relay_id": 1}, {"id": 2, "relay_id": 2}, {"id": 3, "relay_id": 3}, {"id": 4, "relay_id": 4}])
-                    button_map = buttons[button_index - 1]
-                    relay_id = button_map.get("relay_id")
+                    button_map = buttons[button_index]
+                    relay_id = button_map.get("relay_id") - 1
                 else:
                     relay_id = button_index
 
@@ -798,6 +798,6 @@ def download_firmware(filename):
 
 if __name__ == "__main__":
     database.setup_initial_db()
-    application.run(debug=True, host="0.0.0.0", port=5000)
+    application.run(debug=False, host="0.0.0.0", port=5000)
 
 
