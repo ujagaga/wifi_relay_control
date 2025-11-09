@@ -3,5 +3,5 @@ client_secret.json
 settings.py
 database.db
 .idea
-firmware/
+relay_server/firmware/
 .venv
