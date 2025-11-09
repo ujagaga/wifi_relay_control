@@ -20,7 +20,7 @@ Deploy this on a Raspberry Pi or any other computer. Then you will need to make 
 I am using Cloudflare tunnel, but NGrok or any similar service will work too, just make sure to disable caching as 
 the devices will need to be notified of every change to be able to respond to commands. 
 
-A SGI based hosting will not work due to caching and DDOS attack policies. The devices will ping the server every 2s, 
+A CGI based hosting will not work due to caching and DDOS attack policies. The devices will ping the server every 2s, 
 which the CGI based server will prevent.
 
 If you run this on your local machine a local user will be created and you can just use it. A reverse tunnel should 
