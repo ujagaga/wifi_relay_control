@@ -69,7 +69,8 @@ def init_database(connection):
 def open_db(db_path=temp_db):
     if not os.path.isfile(temp_db):
         os.makedirs(temp_dir, exist_ok=True)
-        shutil.copy2(persist_db, temp_db)
+        if os.path.isfile(persist_db):
+            shutil.copy2(persist_db, temp_db)
     connection = sqlite3.connect(db_path)
     connection.row_factory = sqlite3.Row
     return connection
