@@ -24,7 +24,9 @@ from werkzeug.utils import secure_filename
 
 
 sys.path.insert(0, os.path.dirname(__file__))
-
+if not os.path.exists(database.temp_dir):
+    os.makedirs(database.temp_dir, exist_ok=True)
+    
 UPLOAD_FOLDER = "firmware"
 ALLOWED_EXTENSIONS = ["bin"]
 
