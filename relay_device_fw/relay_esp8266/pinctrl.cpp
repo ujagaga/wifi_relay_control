@@ -8,20 +8,18 @@
 #include "config.h"
 
 
-static int currentPinVal[4] = {0}; 
-static int pin_num[4] = {RELAY_1_PIN, RELAY_2_PIN, RELAY_3_PIN, RELAY_4_PIN};
+static int currentPinVal[2] = {0}; 
+static int pin_num[] = {RELAY_1_PIN, RELAY_2_PIN};
 static uint32_t PinWriteTimestamp[4] = {0};
 
 void PINCTRL_init(){
   pinMode(pin_num[0], OUTPUT);
   pinMode(pin_num[1], OUTPUT);
-  pinMode(pin_num[2], OUTPUT);
-  pinMode(pin_num[3], OUTPUT);
 }
 
 void PINCTRL_trigger(int id)
 {  
-  if((id < 0) || (id > 3)){
+  if((id < 0) || (id > 1)){
     return;
   }
 
@@ -35,14 +33,21 @@ void PINCTRL_trigger(int id)
 }
 
 void PINCTRL_process(){
-  for(int i = 0; i < 4; ++i){
-    if((millis() - PinWriteTimestamp[i]) > TRIGGER_TIMEOUT){
-      if(PinWriteTimestamp[i] > 0){
-        digitalWrite(pin_num[i], LOW);
-        PinWriteTimestamp[i] = 0;
-        
-        Serial.printf("SW OFF:%d\r\n", i);
-      }      
-    }
+  if((millis() - PinWriteTimestamp[0]) > RESET_TIMEOUT){
+    if(PinWriteTimestamp[0] > 0){
+      digitalWrite(pin_num[0], LOW);
+      PinWriteTimestamp[0] = 0;
+      
+      Serial.printf("SW OFF:0\r\n");
+    }      
+  }
+
+  if((millis() - PinWriteTimestamp[1]) > TRIGGER_TIMEOUT){
+    if(PinWriteTimestamp[1] > 0){
+      digitalWrite(pin_num[1], LOW);
+      PinWriteTimestamp[1] = 0;
+      
+      Serial.printf("SW OFF:1\r\n");
+    }      
   }
 }
