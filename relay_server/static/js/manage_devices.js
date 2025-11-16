@@ -34,29 +34,44 @@ document.addEventListener('DOMContentLoaded', function () {
     if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeUpdateModal();
   });
 
-  modal.addEventListener('click', function(e) {
-    if (e.target === modal) closeUpdateModal();
-  });
+  if(modal){
+      modal.addEventListener('click', function(e) {
+        if (e.target === modal) closeUpdateModal();
+      });
+  }
 
   const startForm = document.getElementById('startUpdateForm');
-  startForm.addEventListener('submit', function(e){
-    const checked = startForm.querySelectorAll('input[type="checkbox"]:checked');
-    if (checked.length === 0) {
-      e.preventDefault();
-      alert('Please select at least one device to update.');
-    }
-  });
+  if(startForm){
+    startForm.addEventListener('submit', function(e){
+        const checked = startForm.querySelectorAll('input[type="checkbox"]:checked');
+        if (checked.length === 0) {
+          e.preventDefault();
+          alert('Please select at least one device to update.');
+        }
+    });
+  }
+});
 
-  // Ping time formatting (same as in home)
+window.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.ping_time').forEach(span => {
     const utcTime = span.dataset.iso;
     const date = new Date(utcTime);
+    const now = new Date();
+
     const day = String(date.getDate()).padStart(2, '0');
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const year = date.getFullYear();
     const hour = String(date.getHours()).padStart(2, '0');
     const minute = String(date.getMinutes()).padStart(2, '0');
-    span.textContent = `${day}.${month}.${year} ${hour}:${minute}`;
-  });
 
+    const diffSeconds = Math.floor((now - date) / 1000);
+
+    let ago = `${diffSeconds} seconds ago`;
+    if (diffSeconds >= 86400) ago = `${Math.floor(diffSeconds / 86400)} days ago`;
+    else if (diffSeconds >= 3600) ago = `${Math.floor(diffSeconds / 3600)} hours ago`;
+    else if (diffSeconds >= 60) ago = `${Math.floor(diffSeconds / 60)} minutes ago`;
+
+    span.textContent = `${day}.${month}.${year} ${hour}:${minute}, ${ago}`;
+  });
 });
+
