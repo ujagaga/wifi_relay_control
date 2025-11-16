@@ -34,18 +34,22 @@ document.addEventListener('DOMContentLoaded', function () {
     if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeUpdateModal();
   });
 
-  modal.addEventListener('click', function(e) {
-    if (e.target === modal) closeUpdateModal();
-  });
+  if(modal){
+      modal.addEventListener('click', function(e) {
+        if (e.target === modal) closeUpdateModal();
+      });
+  }
 
   const startForm = document.getElementById('startUpdateForm');
-  startForm.addEventListener('submit', function(e){
-    const checked = startForm.querySelectorAll('input[type="checkbox"]:checked');
-    if (checked.length === 0) {
-      e.preventDefault();
-      alert('Please select at least one device to update.');
-    }
-  });
+  if(startForm){
+    startForm.addEventListener('submit', function(e){
+        const checked = startForm.querySelectorAll('input[type="checkbox"]:checked');
+        if (checked.length === 0) {
+          e.preventDefault();
+          alert('Please select at least one device to update.');
+        }
+    });
+  }
 });
 
 window.addEventListener('DOMContentLoaded', () => {
