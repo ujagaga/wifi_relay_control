@@ -51,12 +51,33 @@ document.addEventListener('DOMContentLoaded', function () {
   document.querySelectorAll('.ping_time').forEach(span => {
     const utcTime = span.dataset.iso;
     const date = new Date(utcTime);
+    const now = new Date();
+
+    // formatted local time
     const day = String(date.getDate()).padStart(2, '0');
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const year = date.getFullYear();
     const hour = String(date.getHours()).padStart(2, '0');
     const minute = String(date.getMinutes()).padStart(2, '0');
-    span.textContent = `${day}.${month}.${year} ${hour}:${minute}`;
+
+    // time diff (in seconds)
+    const diffSeconds = Math.floor((now - date) / 1000);
+
+    // human-friendly formatting
+    let ago = `${diffSeconds} seconds ago`;
+
+    if (diffSeconds >= 86400) {
+        const diffDays = Math.floor(diffSeconds / 86400);
+        ago = `${diffDays} days ago`;
+    }else if (diffSeconds >= 3600) {
+        const diffHours = Math.floor(diffSeconds / 3600);
+        ago = `${diffHours} hours ago`;
+    }else if (diffSeconds >= 60) {
+        const diffMinutes = Math.floor(diffSeconds / 60);
+        ago = `${diffMinutes} minutes ago`;
+    }
+
+    span.textContent = `${day}.${month}.${year} ${hour}:${minute}, ${ago}`;
   });
 
 });
