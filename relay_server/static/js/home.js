@@ -1,17 +1,26 @@
 document.addEventListener('DOMContentLoaded', function () {
   const rows = document.querySelectorAll('.row');
 
-  rows.forEach(row => {
-    const deviceName = row.dataset.deviceName;
-    const buttons = row.querySelectorAll('.big_btn');
+  function updateButtonLinks() {
+    const timestamp = Date.now();
 
-    buttons.forEach(btn => {
-      const btnId = btn.dataset.id;
-      const timestamp = Date.now();
-      const href = `/?name=${encodeURIComponent(deviceName)}&id=${btnId}&ts=${timestamp}`;
-      btn.setAttribute('href', href);
+    rows.forEach(row => {
+      const deviceName = row.dataset.deviceName;
+      const buttons = row.querySelectorAll('.big_btn');
+
+      buttons.forEach(btn => {
+        const btnId = btn.dataset.id;
+        const href = `/?name=${encodeURIComponent(deviceName)}&id=${btnId}&ts=${timestamp}`;
+        btn.setAttribute('href', href);
+      });
     });
-  });
+  }
+
+  // Initial update
+  updateButtonLinks();
+
+  // Update every second
+  setInterval(updateButtonLinks, 1000);
 
   function getQueryParam(name) {
     const urlParams = new URLSearchParams(window.location.search);
