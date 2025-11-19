@@ -24,6 +24,7 @@ void reportDeviceRequest() {
   int httpCode = http.GET();
 
   if (httpCode > 0) {
+    fail_count = 0;
     String response = http.getString();
     response.trim();
     Serial.print("RX:");
@@ -62,13 +63,14 @@ void reportDeviceRequest() {
             }
           }else if (strcmp(cmd, "restart") == 0) {
             Serial.println("Restart command received.");
-            PINCTRL_trigger(0);
+            ESP.restart();
           }
         }
       }
     }
   } else {
     Serial.printf("HTTP GET failed, error: %s\n", http.errorToString(httpCode).c_str());
+    fail_count++;
   }
 
   http.end();
@@ -80,5 +82,10 @@ void HTTP_CLIENT_process()
 {    
   if(((millis() - lastConnectAtemptTime) > (UPDATE_TIMEOUT  + random(100))) || (lastConnectAtemptTime == 0)){
     reportDeviceRequest();    
+    if(fail_count > 10){
+      if(!WIFIC_stationMode()){
+        ESP.restart();
+      }
+    }
   } 
 }

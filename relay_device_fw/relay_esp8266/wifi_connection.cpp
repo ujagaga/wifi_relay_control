@@ -86,7 +86,7 @@ void WIFIC_APMode(void){
   apModeAttempTime = millis();
 }
 
-void WIFIC_stationMode(void){
+bool WIFIC_stationMode(void){
   Serial.printf("\n\nTrying STA mode with [%s] and [%s]\r\n", st_ssid, st_pass);
 
   bool useStaticIp = checkValidIp(stationIP);
@@ -121,9 +121,11 @@ void WIFIC_stationMode(void){
 
     Serial.printf("IP address: %s, gateway: %s \n", stationIP.toString().c_str(), gateway.toString().c_str());
     apMode = false;    
+    return true;
   }else{    
-    WIFIC_APMode();     
-  }     
+    WIFIC_APMode();    
+  }    
+  return false;    
 }
 
 String WIFIC_getStSSID(void){
