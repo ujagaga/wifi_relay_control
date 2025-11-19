@@ -109,7 +109,22 @@ bool WIFIC_stationMode(void){
     i--;
     Serial.print(".");
   } 
-  Serial.println("");  
+  Serial.println();  
+
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("Connection failed, trying DHCP renew...");
+    WiFi.disconnect(true); // ← clears old DHCP lease
+    delay(200);
+    WiFi.begin(st_ssid, st_pass);
+
+    int t = 10;
+    while(t-- > 0 && WiFi.status() != WL_CONNECTED) {
+        delay(1000);
+        ESP.wdtFeed();
+        Serial.print(".");
+    }
+    Serial.println();
+  }
 
   if(WiFi.status() == WL_CONNECTED){
     stationIP = WiFi.localIP();
