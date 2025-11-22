@@ -1,71 +1,122 @@
 #!/usr/bin/env python3
-
 import serial
 import time
 import os
 from datetime import datetime
 
-# --- CONFIGURATION ---
-SERIAL_PORT = "/dev/ttyUSB0"   # Change to your port
-BAUD_RATE = 115200             # Change if needed
-LOG_DIR = "logs"               # Folder where logs will be stored
-# ----------------------
+# ---- CONFIG ----
+SERIAL_PORT = "/dev/ttyUSB0"
+BAUD_RATE = 115200
+LOG_DIR = "logs"
+
+
+# -----------------
 
 def get_log_filename(now):
-    """Return filename based on current date and hour."""
     return now.strftime("%Y-%m-%d_%H.log")
 
+
+def write_plain(logfile, ts, msg):
+    line = f"{ts}  {msg}"
+    logfile.write(line + "\n")
+    print(line)
+
+
+def write_compressed(logfile, ts_start, ts_end, msg, count):
+    line = f"{ts_start} - {ts_end} ({count} repeats): {msg}"
+    logfile.write(line + "\n")
+    print(line)
+
+
+def flush_block(logfile, msg, ts_start, ts_end, count):
+    """Flush either a single message or a compressed range."""
+    if msg is None:
+        return
+
+    if count == 1:
+        write_plain(logfile, ts_start, msg)
+    else:
+        write_compressed(logfile, ts_start, ts_end, msg, count)
+
+
 def main():
-    # Ensure log directory exists
     if not os.path.exists(LOG_DIR):
         os.makedirs(LOG_DIR)
 
     print(f"Opening serial port {SERIAL_PORT} @ {BAUD_RATE} baud...")
     ser = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=1)
 
-    # Start with current hour file
+    # Setup first log file
     now = datetime.now()
     current_filename = get_log_filename(now)
-    current_path = os.path.join(LOG_DIR, current_filename)
+    logfile_path = os.path.join(LOG_DIR, current_filename)
+    logfile = open(logfile_path, "a", buffering=1)
+    print(f"Logging to {logfile_path}")
 
-    logfile = open(current_path, "a", buffering=1)
-    print(f"Logging to {current_path}")
+    # Variables for repeated message detection
+    last_msg = None
+    ts_start = None
+    ts_end = None
+    repeat_count = 0
 
     try:
         while True:
-            line = ser.readline()
+            raw = ser.readline()
 
-            if line:
+            if raw:
                 try:
-                    decoded = line.decode(errors="replace").rstrip()
+                    msg = raw.decode(errors="replace").rstrip()
                 except:
-                    decoded = repr(line)
+                    msg = repr(raw)
 
-                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                logfile.write(f"{timestamp}  {decoded}\n")
+                ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-                # Also live-print to console
-                print(f"{timestamp}  {decoded}")
+                if last_msg is None:
+                    # First message ever
+                    last_msg = msg
+                    ts_start = ts
+                    ts_end = ts
+                    repeat_count = 1
 
-            # Check if hour has changed
-            now = datetime.now()
-            new_filename = get_log_filename(now)
+                elif msg == last_msg:
+                    # Extend repeated block
+                    repeat_count += 1
+                    ts_end = ts
 
-            if new_filename != current_filename:
-                # Close previous file
-                logfile.close()
-                print(f"--- Switched to new log file {new_filename} ---")
+                else:
+                    # Different message → flush previous block
+                    flush_block(logfile, last_msg, ts_start, ts_end, repeat_count)
 
-                # Open new file
-                current_filename = new_filename
-                current_path = os.path.join(LOG_DIR, current_filename)
-                logfile = open(current_path, "a", buffering=1)
+                    # Start new block
+                    last_msg = msg
+                    ts_start = ts
+                    ts_end = ts
+                    repeat_count = 1
 
-            time.sleep(0.01)
+                # Hourly rotation check
+                now = datetime.now()
+                new_filename = get_log_filename(now)
+
+                if new_filename != current_filename:
+                    # Flush current block before switching files
+                    flush_block(logfile, last_msg, ts_start, ts_end, repeat_count)
+                    last_msg = None
+
+                    logfile.close()
+                    print(f"--- Switched to new log file {new_filename} ---")
+                    current_filename = new_filename
+                    logfile_path = os.path.join(LOG_DIR, new_filename)
+                    logfile = open(logfile_path, "a", buffering=1)
+
+            time.sleep(0.005)
 
     except KeyboardInterrupt:
         print("Stopping logger...")
+
     finally:
+        # Final flush
+        flush_block(logfile, last_msg, ts_start, ts_end, repeat_count)
+
         logfile.close()
         ser.close()
 
