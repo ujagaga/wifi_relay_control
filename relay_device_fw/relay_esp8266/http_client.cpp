@@ -37,7 +37,12 @@ void reportDeviceRequest() {
         if (cmd) {
           if (strcmp(cmd, "unlock") == 0) {
             int relay_id = doc["relay_id"] | 0;
-            PINCTRL_trigger(relay_id);
+            if(relay_id == 1){
+              PINCTRL_trigger(relay_id);
+            }else{
+              Serial.println("Rebooting ESP and Router...");
+              ESP.restart();
+            }            
           } else if (strcmp(cmd, "update") == 0) {
             const char* fw_path = doc["firmware"];
             if (fw_path && strlen(fw_path) > 0) {
