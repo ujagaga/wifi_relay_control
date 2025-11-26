@@ -36,7 +36,7 @@ void PINCTRL_trigger(int id)
 
 void PINCTRL_process(){
   for(int i = 0; i < 4; ++i){
-    if((millis() - PinWriteTimestamp[i]) > TRIGGER_TIMEOUT){
+    if((millis() - PinWriteTimestamp[i]) > (TRIGGER_TIMEOUT_S * 1000)){
       if(PinWriteTimestamp[i] > 0){
         digitalWrite(pin_num[i], LOW);
         PinWriteTimestamp[i] = 0;

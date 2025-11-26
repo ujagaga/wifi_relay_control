@@ -21,20 +21,6 @@ static bool apMode = false;
 static uint32_t apModeAttempTime = 0;
 static IPAddress dns(8,8,8,8);
 
-static bool checkValidIp(IPAddress IP){
-  /* check if they are all zero value */
-  if((IP[0] == 0) && (IP[1] == 0) && (IP[2] == 0) && (IP[3] == 0)){
-      return false;
-  }
-
-  /* Check that they are not all 0xff (defaut empty flash value) */
-  if((IP[0] == 0xff) && (IP[1] == 0xff) && (IP[2] == 0xff) && (IP[3] == 0xff)){
-      return false;
-  }
-    
-  return true;
-}
-
 char* WIFIC_getDeviceName(void){
   return myApName;
 }
@@ -86,19 +72,11 @@ void WIFIC_APMode(void){
   apModeAttempTime = millis();
 }
 
-void WIFIC_stationMode(void){
+bool WIFIC_stationMode(void){
   Serial.printf("\n\nTrying STA mode with [%s] and [%s]\r\n", st_ssid, st_pass);
-
-  bool useStaticIp = checkValidIp(stationIP);
-  if( useStaticIp ){    
-    IPAddress subnet(255, 255, 255, 0);
-    IPAddress gateway(stationIP[0], stationIP[1],stationIP[2], 1); 
-
-    WiFi.config(stationIP, gateway, IPAddress(255, 255, 255, 0), dns);    
-  }else{
-    WiFi.config(0U, 0U, 0U);  // This disables static config.
-  }
-
+  
+  WiFi.mode(WIFI_STA);
+  WiFi.config(0U, 0U, 0U);  // This disables static config.
   WiFi.begin(st_ssid, st_pass); 
 
     /* set timeout to 30 seconds*/
@@ -109,7 +87,22 @@ void WIFIC_stationMode(void){
     i--;
     Serial.print(".");
   } 
-  Serial.println("");  
+  Serial.println();  
+
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("Connection failed, trying DHCP renew...");
+    WiFi.disconnect(true); // ← clears old DHCP lease
+    delay(200);
+    WiFi.begin(st_ssid, st_pass);
+
+    int t = 10;
+    while(t-- > 0 && WiFi.status() != WL_CONNECTED) {
+        delay(1000);
+        ESP.wdtFeed();
+        Serial.print(".");
+    }
+    Serial.println();
+  }
 
   if(WiFi.status() == WL_CONNECTED){
     stationIP = WiFi.localIP();
@@ -121,9 +114,11 @@ void WIFIC_stationMode(void){
 
     Serial.printf("IP address: %s, gateway: %s \n", stationIP.toString().c_str(), gateway.toString().c_str());
     apMode = false;    
+    return true;
   }else{    
-    WIFIC_APMode();     
-  }     
+    WIFIC_APMode();    
+  }    
+  return false;    
 }
 
 String WIFIC_getStSSID(void){
