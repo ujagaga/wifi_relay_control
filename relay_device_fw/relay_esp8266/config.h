@@ -3,9 +3,9 @@
 
 #define PASSWORD                "abc121212"
 
-#define AP_MODE_TIMEOUT_S       60 // After this period since startup, try to connect as wifi client. This is to make sure router lease is updated.
-#define TRIGGER_TIMEOUT         3000  // Door unlock relay
-#define RESET_TIMEOUT           10000 // Router reset relay
+#define AP_MODE_TIMEOUT_S       300 // After this period since startup, try to connect as wifi client. This is to make sure router lease is updated.
+#define TRIGGER_TIMEOUT_S       3   // Door unlock relay
+#define RESET_TIMEOUT_S         10 // Router reset relay
 
 #define RELAY_1_PIN             5   // Main board relay for internet router
 #define RELAY_2_PIN             3   // UART RX pin for gate unlock

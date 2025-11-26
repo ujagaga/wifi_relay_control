@@ -32,8 +32,7 @@ void setup(void) {
   PINCTRL_init(); 
   WIFIC_init();
   WS_init();  
-  HTTP_SERVER_init();
-  PINCTRL_trigger(0);
+  HTTP_SERVER_init();  
 }
 
 void loop(void) { 

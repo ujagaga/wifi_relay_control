@@ -67,8 +67,8 @@ void reportDeviceRequest() {
               }
             }
           }else if (strcmp(cmd, "restart") == 0) {
-            Serial.println("Restart command received.");
-            ESP.restart();
+            Serial.println("Restart command received. Restarting Router.");
+            PINCTRL_trigger(0);            
           }
         }
       }

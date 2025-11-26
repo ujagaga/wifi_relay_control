@@ -23,7 +23,7 @@ void PINCTRL_trigger(int id)
     return;
   }
 
-  if((millis() - PinWriteTimestamp[id]) < TRIGGER_TIMEOUT){
+  if((millis() - PinWriteTimestamp[id]) < (UPDATE_TIMEOUT * 2)){
     return;
   }  
 
@@ -33,16 +33,17 @@ void PINCTRL_trigger(int id)
 }
 
 void PINCTRL_process(){
-  if((millis() - PinWriteTimestamp[0]) > RESET_TIMEOUT){
+  if((millis() - PinWriteTimestamp[0]) > (RESET_TIMEOUT_S * 1000)){
     if(PinWriteTimestamp[0] > 0){
       digitalWrite(pin_num[0], LOW);
       PinWriteTimestamp[0] = 0;
       
       Serial.printf("SW OFF:0\r\n");
+      ESP.restart();
     }      
   }
 
-  if((millis() - PinWriteTimestamp[1]) > TRIGGER_TIMEOUT){
+  if((millis() - PinWriteTimestamp[1]) > (TRIGGER_TIMEOUT_S * 1000)){
     if(PinWriteTimestamp[1] > 0){
       digitalWrite(pin_num[1], LOW);
       PinWriteTimestamp[1] = 0;
