@@ -1,0 +1,9 @@
+{
+    "quickCommandButtons.buttons": [
+        {
+            "name": "$(play) Run Index",
+            "command": ".venv/bin/python index.py",
+            "color": "#4ec9b0"
+        }
+    ]
+}
