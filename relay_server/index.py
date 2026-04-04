@@ -22,6 +22,7 @@ from flask_wtf import CSRFProtect
 from flask import jsonify
 from werkzeug.utils import secure_filename
 from werkzeug.middleware.proxy_fix import ProxyFix
+import argparse
 
 
 sys.path.insert(0, os.path.dirname(__file__))
@@ -851,7 +852,13 @@ def download_firmware(filename):
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--local', action='store_true', help='Run in local development mode')
+    cmdargs = parser.parse_args()
+
+    IS_LOCAL = cmdargs.local
+    logger = setup_logger(IS_LOCAL)
     database.setup_initial_db()
-    application.run(debug=True, use_reloader=True, port=5000)
+    application.run(debug=True, use_reloader=True, port=8010)
 
 
