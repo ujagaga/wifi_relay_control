@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-pip install flask authlib flask-wtf requests
+pip install flask authlib flask-wtf requests paho-mqtt
 """
 
 from flask import (Flask, g, render_template, request, flash, redirect, make_response, Response,
@@ -21,81 +21,131 @@ from datetime import datetime, timezone
 from flask_wtf import CSRFProtect
 from flask import jsonify
 from werkzeug.utils import secure_filename
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 
 sys.path.insert(0, os.path.dirname(__file__))
 if not os.path.exists(database.temp_dir):
     os.makedirs(database.temp_dir, exist_ok=True)
-    
+current_path = os.path.dirname(os.path.realpath(__file__))
+
+IS_LOCAL = os.environ.get('REMOTE_ADDR') == '127.0.0.1' or os.environ.get('SERVER_NAME') == 'localhost'
 UPLOAD_FOLDER = "firmware"
 ALLOWED_EXTENSIONS = ["bin"]
-
-application = Flask(__name__, static_url_path='/static', static_folder='static')
-application.config['SECRET_KEY'] = settings.APP_SECRET_KEY
-application.config['SESSION_COOKIE_NAME'] = 'gate_ctrl'
-application.config['WTF_CSRF_SECRET_KEY'] = application.config['SECRET_KEY']
-application.config['APPLICATION_ROOT'] = '/'
-application.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
-
-file_handler = RotatingFileHandler(os.path.join(database.temp_dir, "app.log"), maxBytes=65535, backupCount=1)
-file_handler.setLevel(logging.DEBUG)
-formatter = logging.Formatter(
-    "[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s",
-    datefmt='%Y-%m-%dT%H:%M:%S'
-)
-file_handler.setFormatter(formatter)
-# Always include file handler
-handlers = [file_handler]
-# If running in debug mode, also add console logs
-if application.debug:
-    console_handler = logging.StreamHandler(sys.stdout)
-    console_handler.setLevel(logging.DEBUG)
-    console_handler.setFormatter(formatter)
-    handlers.append(console_handler)
-logging.basicConfig(level=logging.DEBUG, handlers=handlers)
-
-logger = logging.getLogger(__name__)
-
-csrf = CSRFProtect(application)
-
 CLIENT_SECRETS_FILE = "client_secret.json"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-if application.debug:
-    google = None
-else:
-    if os.path.isfile(CLIENT_SECRETS_FILE):
-        with open(CLIENT_SECRETS_FILE) as f:
-            client_secrets = json.load(f)['web']  # Assumes the JSON structure is under 'web'
 
-        # Configure OAuth
-        oauth = OAuth(application)
+class HeaderDeduplicateMiddleware:
+    def __init__(self, app):
+        self.app = app
 
-        google = oauth.register(
-            name='google',
-            client_id=client_secrets['client_id'],
-            client_secret=client_secrets['client_secret'],
-            access_token_url=client_secrets['token_uri'],
-            access_token_params=None,
-            authorize_url=client_secrets['auth_uri'],
-            authorize_params=None,
-            api_base_url='https://www.googleapis.com/oauth2/v1/',
-            userinfo_endpoint='https://www.googleapis.com/oauth2/v3/userinfo',
-            client_kwargs={'scope': 'email'},
-            server_metadata_url='https://accounts.google.com/.well-known/openid-configuration'
+    def __call__(self, environ, start_response):
+        # Nginx or multiple proxies might double headers like "Host: domain,domain"
+        # and "X-Forwarded-Proto: https,https". This deduplicates them.
+        for key in ['HTTP_HOST', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED_PROTO', 'HTTP_X_FORWARDED_HOST']:
+            value = environ.get(key)
+            if value and ',' in value:
+                parts = [p.strip() for p in value.split(',')]
+                # If all parts are identical, we take just one
+                if all(p == parts[0] for p in parts):
+                    environ[key] = parts[0]
+        return self.app(environ, start_response)
+
+
+application = Flask(__name__, static_url_path='/static', static_folder='static')
+application.wsgi_app = ProxyFix(application.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+application.wsgi_app = HeaderDeduplicateMiddleware(application.wsgi_app)
+application.config.update(
+    SESSION_COOKIE_SECURE=not IS_LOCAL,
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE='Lax',
+    SESSION_COOKIE_NAME=settings.APP_NAME,
+    SECRET_KEY=settings.APP_SECRET_KEY,
+    WTF_CSRF_SECRET_KEY=settings.APP_SECRET_KEY,
+    WTF_CSRF_TRUSTED_ORIGINS=[settings.APP_URL],
+    WTF_CSRF_SSL_STRICT=True,
+    APPLICATION_ROOT='/',
+    UPLOAD_FOLDER=UPLOAD_FOLDER
+)
+csrf = CSRFProtect(application)
+
+# ---------------------- Logging ----------------------
+def setup_logger(is_local: bool):
+    logger_obj = logging.getLogger()
+    logger_obj.setLevel(logging.DEBUG)
+
+    if logger_obj.hasHandlers():
+        logger_obj.handlers.clear()
+
+    formatter = logging.Formatter(
+        "[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s",
+        datefmt='%Y-%m-%dT%H:%M:%S'
+    )
+
+    if is_local:
+        console_handler = logging.StreamHandler()
+        console_handler.setFormatter(formatter)
+        logger_obj.addHandler(console_handler)
+    else:
+        file_handler = RotatingFileHandler(
+            os.path.join(os.path.dirname(__file__), 'app.log'),
+            maxBytes=65535,
+            backupCount=1
         )
+        file_handler.setFormatter(formatter)
+        logger_obj.addHandler(file_handler)
 
-'''
-On a CGI hosting, the flasks url_for populates the url with script path,
-so you get junk data that does not resolve to a valid url. This is an override to clean it up.
-'''
+    return logger_obj
+
+logger = setup_logger(IS_LOCAL)
+
+
+# ---------------------- Helpers ----------------------
 def safe_url_for(endpoint, **values):
-
+    """
+    Clean up CGI SCRIPT_NAME issues for url_for and
+    automatically prefix URLs with the current language.
+    """
+    # 1. Generate a Flask URL
     url = flask_url_for(endpoint, **values)
+
+    # 2. Fix SCRIPT_NAME issues (your logic)
     script_name = request.environ.get('SCRIPT_NAME', '')
     if script_name and url.startswith(script_name):
         url = url[len(script_name):] or '/'
+
     return url
+
+def register_google_oauth():
+    """
+    Load client secrets and register OAuth for Google.
+    """
+    client_secrets_path = os.path.join(current_path, config.CLIENT_SECRETS_FILE)
+    with open(client_secrets_path) as f:
+        client_secrets = json.load(f)['web']
+
+    oauth = OAuth(application)
+    return oauth.register(
+        name='google',
+        client_id=client_secrets['client_id'],
+        client_secret=client_secrets['client_secret'],
+        access_token_url=client_secrets['token_uri'],
+        authorize_url=client_secrets['auth_uri'],
+        api_base_url='https://www.googleapis.com/oauth2/v1/',
+        userinfo_endpoint='https://www.googleapis.com/oauth2/v3/userinfo',
+        client_kwargs={'scope': 'email'},
+        server_metadata_url='https://accounts.google.com/.well-known/openid-configuration'
+    )
+
+# ---------------------- OAuth ----------------------
+google = None
+client_secrets_path = os.path.join(current_path, settings.CLIENT_SECRETS_FILE)
+if os.path.isfile(client_secrets_path):
+    try:
+        google = register_google_oauth()
+    except Exception as e:
+        logger.error(f"Failed to register Google OAuth: {e}")
 
 
 def allowed_file(filename):
@@ -407,9 +457,11 @@ def unlock():
 
                 command = json.dumps({
                     "unlocked_at": current_timestamp,
-                    "relay_id": relay_id
+                    "relay_id": relay_id,
+                    "dev_id": device["name"]
                 })
                 database.update_device(connection=g.db, name=device["name"], command=command)
+                helper.mqtt_publish(command, device["name"])
                 dev_found = True
 
         if dev_found:
@@ -800,6 +852,6 @@ def download_firmware(filename):
 
 if __name__ == "__main__":
     database.setup_initial_db()
-    application.run(debug=False, host="0.0.0.0", port=5000)
+    application.run(debug=True, use_reloader=True, port=5000)
 
 

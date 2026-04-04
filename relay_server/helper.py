@@ -8,6 +8,7 @@ import logging
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import paho.mqtt.publish as mqtt_publish_lib
 
 logger = logging.getLogger(__name__)
 DATE_FORMAT = "%Y-%m-%d"
@@ -80,8 +81,27 @@ def rough_time_ago(seconds_ago: int) -> str:
         return "more than a year ago"
 
 
+def mqtt_publish(payload: str, dev_id: str=None):
+    if dev_id:
+        topic = f"{settings.MQTT_TOPIC_CMD}/{dev_id}"
+    else:
+        topic = settings.MQTT_TOPIC_CMD
+
+    try:
+        logger.info(f"MQTT publish to {topic}: {payload}")
+        mqtt_publish_lib.single(
+            topic,
+            payload=payload,
+            hostname=settings.MQTT_URL,
+            port=settings.MQTT_PORT,
+            auth={"username": settings.MQTT_USER, "password": settings.MQTT_PASS},
+        )
+    except Exception as e:
+        logger.exception(f"Error publishing MQTT message: {e}")
+
+
 '''
-Sends an email using configured credentials. 
+Sends an email using configured credentials.
 '''
 def send_email(recipient, subject, body):
     msg = MIMEMultipart()
