@@ -6,3 +6,4 @@ database.db
 firmware/
 .venv
 app.log
+app.log.*
