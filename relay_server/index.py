@@ -122,7 +122,7 @@ def register_google_oauth():
     """
     Load client secrets and register OAuth for Google.
     """
-    client_secrets_path = os.path.join(current_path, config.CLIENT_SECRETS_FILE)
+    client_secrets_path = os.path.join(current_path, settings.CLIENT_SECRETS_FILE)
     with open(client_secrets_path) as f:
         client_secrets = json.load(f)['web']
 
@@ -279,19 +279,7 @@ def oauth2callback():
     except Exception as e:
         logger.exception(f"OAuth2 callback error {e}")
         # Restart the login flow
-        google = oauth.register(
-            name='google',
-            client_id=client_secrets['client_id'],
-            client_secret=client_secrets['client_secret'],
-            access_token_url=client_secrets['token_uri'],
-            access_token_params=None,
-            authorize_url=client_secrets['auth_uri'],
-            authorize_params=None,
-            api_base_url='https://www.googleapis.com/oauth2/v1/',
-            userinfo_endpoint='https://www.googleapis.com/oauth2/v3/userinfo',
-            client_kwargs={'scope': 'email'},
-            server_metadata_url='https://accounts.google.com/.well-known/openid-configuration'
-        )
+        google = register_google_oauth()
 
         response = redirect(safe_url_for("login"))
         response.set_cookie('token', 'None', expires=0)
