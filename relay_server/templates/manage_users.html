@@ -17,6 +17,12 @@
       <button type="submit" class="save_btn device_action_btn">Export Emails</button>
     </form>
 
+    <form method="post" action="{{ url_for('import_emails') }}" enctype="multipart/form-data">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="file" name="emails_file" accept=".txt,.csv" required>
+      <button type="submit" class="save_btn device_action_btn">Import Emails</button>
+    </form>
+
     <h1>Pending Users</h1>
 
     {% if unauthorized_users %}

@@ -10,3 +10,9 @@
 [2026-04-04T10:06:13] INFO [werkzeug._log:97]  * Restarting with stat
 [2026-04-04T10:06:13] WARNING [werkzeug._log:97]  * Debugger is active!
 [2026-04-04T10:06:13] INFO [werkzeug._log:97]  * Debugger PIN: 342-869-317
+[2026-04-04T13:16:36] INFO [werkzeug._log:97] [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:8010
+[2026-04-04T13:16:36] INFO [werkzeug._log:97] [33mPress CTRL+C to quit[0m
+[2026-04-04T13:16:36] INFO [werkzeug._log:97]  * Restarting with stat
+[2026-04-04T13:16:36] WARNING [werkzeug._log:97]  * Debugger is active!
+[2026-04-04T13:16:36] INFO [werkzeug._log:97]  * Debugger PIN: 797-044-899

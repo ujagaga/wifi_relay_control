@@ -641,6 +641,40 @@ def export_emails():
     )
 
 
+@application.route('/import_emails', methods=['POST'])
+def import_emails():
+    token = request.cookies.get('token')
+    user = database.get_user(connection=g.db, token=token)
+    if not user:
+        return redirect(safe_url_for('login'))
+    if user['authorized'] < 2:
+        flash("Not authorized")
+        return redirect(safe_url_for('index'))
+
+    file = request.files.get('emails_file')
+    if not file or file.filename == '':
+        flash("No file selected")
+        return redirect(safe_url_for('manage_users'))
+
+    content = file.read().decode('utf-8')
+    emails = [e.strip() for e in content.split(',') if e.strip()]
+
+    if not emails:
+        flash("No emails found in file")
+        return redirect(safe_url_for('manage_users'))
+
+    existing_emails = {u['email'] for u in database.get_user(connection=g.db)}
+    added = 0
+    for email in emails:
+        if email not in existing_emails:
+            database.add_user(connection=g.db, email=email, token=helper.generate_token(), apartment='')
+            added += 1
+
+    database.sync_temp_db_to_disk(connection=g.db)
+    flash(f"Imported {added} new email(s), skipped {len(emails) - added} already existing")
+    return redirect(safe_url_for('manage_users'))
+
+
 @application.route('/manage_devices', methods=['GET'])
 def manage_devices():
     token = request.cookies.get('token')
