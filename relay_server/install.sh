@@ -88,6 +88,6 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-echo "Office Server installation and service started successfully!"
+echo "VM120 Gate Server installation and service started successfully!"
 
 exit 0
