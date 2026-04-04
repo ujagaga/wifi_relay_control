@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SERVICE_NAME=gate_server.service
+SERVICE_NAME=vm120_gate_server.service
 SERVICE_FILE=/etc/systemd/system/$SERVICE_NAME
 
 # --- Installation Section ---
@@ -30,7 +30,7 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Installing Python packages..."
-pip3 install flask authlib flask-wtf requests gunicorn
+pip3 install flask authlib flask-wtf requests gunicorn paho-mqtt
 if [ $? -ne 0 ]; then
   echo "Error: Failed to install python libraries. Aborting installation."
   exit 1
@@ -50,7 +50,7 @@ fi
 echo "Creating systemd service file: $SERVICE_FILE"
 cat <<EOF > "$PWD/$SERVICE_NAME"
 [Unit]
-Description=Gate Server
+Description=VM120 Gate Server
 After=network-online.target
 Wants=network-online.target
 StartLimitIntervalSec=0
