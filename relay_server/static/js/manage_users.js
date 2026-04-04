@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const imgClose = imgModal.querySelector('.close');
 
   document.querySelectorAll('.user_picture').forEach(img => {
-    img.addEventListener('click', function() {
+    img.addEventListener('click', function () {
       modalImage.src = this.src;
       imgModal.style.display = 'flex';
     });
@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const modalApartmentInput = document.getElementById('modal-apartment');
 
   document.querySelectorAll('.edit-apartment-link').forEach(link => {
-    link.addEventListener('click', function(e) {
+    link.addEventListener('click', function (e) {
       e.preventDefault();
       const email = this.dataset.email;
       const apartment = this.dataset.apartment;
@@ -41,6 +41,12 @@ document.addEventListener('DOMContentLoaded', function () {
   window.addEventListener('click', e => {
     if (e.target === apartmentModal) {
       apartmentModal.style.display = 'none';
+    }
+  });
+
+  document.getElementById('emails_file_input').addEventListener('change', function () {
+    if (this.files.length > 0) {
+      document.getElementById('import_emails_form').submit();
     }
   });
 
