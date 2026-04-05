@@ -2,7 +2,8 @@
   --accent-color: #1fa3ec;
 }
 
-html, body {
+html,
+body {
   height: 100%;
   margin: 0;
   padding: 0;
@@ -11,16 +12,20 @@ html, body {
 .page-wrapper {
   display: flex;
   flex-direction: column;
-  min-height: 100vh; /* full viewport height */
+  min-height: 100vh;
+  /* full viewport height */
 }
 
-a, a h1 {
+a,
+a h1 {
   text-decoration: none !important;
 }
 
 .container {
-  flex: 1 1 auto;       /* grow and shrink as needed */
-  overflow-y: auto;     /* enable vertical scroll */
+  flex: 1 1 auto;
+  /* grow and shrink as needed */
+  overflow-y: auto;
+  /* enable vertical scroll */
   position: relative;
   padding: 0 0 20px 0;
   max-width: 800px;
@@ -98,13 +103,20 @@ h1 {
 }
 
 .save_btn {
-    background-color: #007bff;
-}
-.delete_btn{
-    background-color: red;
+  background-color: #007bff;
 }
 
-.save_btn, .delete_btn{
+.restart_btn {
+  background-color: #00c853;
+}
+
+.delete_btn {
+  background-color: red;
+}
+
+.save_btn,
+.delete_btn,
+.restart_btn {
   color: #fff;
   border: none;
   padding: 0.6em 1em;
@@ -116,19 +128,23 @@ h1 {
   opacity: 0.8;
 }
 
-.save_btn:hover, .delete_btn:hover {
+.save_btn:hover,
+.delete_btn:hover,
+.restart_btn:hover {
   opacity: 1;
 }
 
 
 /* Footer */
 .footer {
-  flex-shrink: 0;       /* never shrink */
+  flex-shrink: 0;
+  /* never shrink */
   text-align: center;
   padding: 1rem 0;
   font-size: 0.9rem;
   color: #333;
-  background-color: #f2f2f2; /* optional: makes it stand out */
+  background-color: #f2f2f2;
+  /* optional: makes it stand out */
 }
 
 /* Optional: footer link styling */
@@ -157,12 +173,14 @@ h1 {
 }
 
 /* Modal */
-.modal.hidden { display: none; }
+.modal.hidden {
+  display: none;
+}
 
 .modal {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.45);
+  background: rgba(0, 0, 0, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -175,7 +193,7 @@ h1 {
   border-radius: 10px;
   width: 90%;
   max-width: 640px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
   position: relative;
 }
 
@@ -191,18 +209,26 @@ h1 {
 
 /* Responsive */
 @media only screen and (max-width: 767px) {
-  .container { min-width: 100vw; }
+  .container {
+    min-width: 100vw;
+  }
 }
 
 @media (orientation: landscape) {
-  .container { min-width: 400px; }
+  .container {
+    min-width: 400px;
+  }
 }
+
 /* Align buttons vertically */
 .update_buttons {
   display: flex;
-  flex-direction: column;   /* stack buttons vertically */
-  align-items: stretch;     /* make buttons fill the width of container */
-  gap: 0.5em;               /* spacing between buttons */
+  flex-direction: column;
+  /* stack buttons vertically */
+  align-items: stretch;
+  /* make buttons fill the width of container */
+  gap: 0.5em;
+  /* spacing between buttons */
 }
 
 /* Make all buttons inside update_buttons fill full width */

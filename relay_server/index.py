@@ -372,6 +372,13 @@ def device_report():
                 restarted_at_epoch = current_timestamp
                 do_restart_flag = True
 
+                # Send command to device via mqtt
+                mqtt_command = json.dumps({
+                    "command": "restart"
+                })
+
+                helper.mqtt_publish(mqtt_command, device["name"])
+
     if not do_restart_flag and dev_command:
         update_at = dev_command.get("update_at")
         firmware_id = dev_command.get("firmware_id")
@@ -747,6 +754,13 @@ def manage_devices_post():
     elif action == 'remove':
         name = request.form.get('device_name')
         database.delete_device(connection=g.db, name=name)
+
+    elif action == 'restart':
+        name = request.form.get('device_name')
+        mqtt_command = json.dumps({
+            "command": "restart"
+        })
+        helper.mqtt_publish(mqtt_command, name)
 
     elif action == 'update_single':
         name = request.form.get('device_name')
