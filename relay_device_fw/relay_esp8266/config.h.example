@@ -15,7 +15,7 @@
 #define RELAY_4_PIN 13
 
 #define UPDATE_TIMEOUT (30 * 1000ul)
-#define REPORT_URL "vm120.ujagaga.in.rs" // E.G. "mywebsite.com" without http://
+#define REPORT_URL "your_server_url" // E.G. "mywebsite.com" without https://
 
 #define AP_NAME_PREFIX "Gate_sw_" // Will be appended by device MAC
 
@@ -25,11 +25,15 @@
 #define SSID_SIZE (32)
 #define EEPROM_SIZE (WIFI_PASS_SIZE + SSID_SIZE)
 
-#define MQTT_URL "140.238.210.203"
+// NOTE: If you host your relay_server on a dedicated hosting plan, most hosting
+// providers will allow outbound traffic on ports 80, 433 and above 49000. I had
+// to provide an mqtt server on port 50000 to connect the server so it can
+// forward the commands.
+#define MQTT_URL "your_mqtt_url"
 #define MQTT_PORT 50000
-#define MQTT_PASS "Dv@5es1ra"
-#define MQTT_USER "ujagaga"
-#define APP_NAME "VM120_Gate_Server"
-#define MQTT_TOPIC_CMD APP_NAME "/command/" // will be appended by device MAC
+#define MQTT_PASS "your_mqtt_password"
+#define MQTT_USER "your_mqtt_username"
+#define APP_NAME "Gate_Server"
+#define MQTT_TOPIC_CMD APP_NAME "/command/" // /will be appended by device MAC
 
 #endif
