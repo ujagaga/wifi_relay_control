@@ -386,7 +386,7 @@ def device_report():
         else:
             unlock_epoch_time = dev_command.get("unlocked_at", 0)
             unlock_interval = current_timestamp - unlock_epoch_time
-            if unlock_interval < settings.LIFESIGN_TIMEOUT:
+            if unlock_interval < settings.UNLOCK_TIMEOUT:
                 response = json.dumps({
                     "relay_id": helper.to_int(dev_command.get("relay_id", 0)),
                     "command": "unlock",

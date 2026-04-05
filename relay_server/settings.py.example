@@ -1,8 +1,12 @@
 APP_TITLE = "Gate Server"
+APP_NAME = "Gate_Server"
+APP_URL = "app_web.url"
 APARTMENT_BUILDING_MODE = True                  # Set this to False if you need the family house mode. The users will not have to register and add their apartment number.
 SUPER_ADMIN = "admin@email.com"                 # Set the admin email to receive notification when a new user attempts to login
 
+# if you use an MQTT server, this can be 30s or more, otherwise make it small like 2s so you do not wait long for a command to be executed.
 LIFESIGN_TIMEOUT = 30
+UNLOCK_TIMEOUT = 2
 MAX_COOKIE_AGE = 60 * 60 * 24 *30
 RESET_DEVS_AT = 3                               # Reset devices at 3 AM so they re-connect to WiFi
 
@@ -18,4 +22,12 @@ RESET_DEVS_AT = 3                               # Reset devices at 3 AM so they 
 
 DB_NAME = "database.db"
 
+CLIENT_SECRETS_FILE = "client_secret.json"
 
+# If not using MQTT you can just ignore the following lines
+MQTT_URL = "your_mqtt_server"
+MQTT_PORT = 50000
+MQTT_PASS = "your_mqtt_password"
+MQTT_USER = "your_mqtt_user"
+# This topic is used to send commands to the devices. The devices subscribe to this topic to receive commands.
+MQTT_TOPIC_CMD = f"{APP_NAME}/command"
