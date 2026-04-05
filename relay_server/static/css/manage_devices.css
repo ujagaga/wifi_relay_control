@@ -106,6 +106,7 @@
 .upload_label i {
   font-size: 1.1em;
 }
+
 .button_map {
   display: flex;
   flex-direction: column;
@@ -122,7 +123,15 @@
   border-radius: 4px;
 }
 
-.button_row span, .button_row select {
+.button_row span,
+.button_row select {
   font-weight: 500;
   width: 50%;
+}
+
+.fw_status {
+  color: #e6a817;
+  font-size: 0.75em;
+  vertical-align: middle;
+  margin-left: 0.4em;
 }

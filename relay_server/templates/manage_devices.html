@@ -87,7 +87,7 @@
       <h3>
         {{ device.name }}
         {% if device.command and device.command.update_at and device.command.firmware_id %}
-        <span title="Firmware update pending" style="color:#e6a817;font-size:0.75em;vertical-align:middle;margin-left:0.4em;">
+        <span title="Firmware update pending" class="fw_status">
           <i class="fa-solid fa-microchip"></i>
         </span>
         {% endif %}
