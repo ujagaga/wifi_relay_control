@@ -250,7 +250,7 @@ def logout():
         return redirect(safe_url_for('login'))
 
     token = helper.generate_token()
-    database.update_user(connection=g.db, email=user_email, token=token)
+    database.update_user(connection=g.db, email=user["email"], token=token)
 
     response = make_response(redirect(safe_url_for('login')))
     response.set_cookie('token', '', expires=0)
