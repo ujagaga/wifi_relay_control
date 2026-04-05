@@ -239,6 +239,18 @@ def login():
     return render_template('signin.html', title=settings.APP_TITLE, url_for=safe_url_for)
 
 
+@application.route('/logout')
+def logout():
+    token = request.cookies.get('token')
+    if token:
+        token = helper.generate_token()
+        database.update_user(connection=g.db, email=user_email, token=token)
+
+    response = make_response(redirect(safe_url_for('login')))
+    response.set_cookie('token', '', expires=0)
+    return response
+
+
 @application.route('/oauth2callback')
 def oauth2callback():
     global google

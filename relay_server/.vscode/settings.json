@@ -1,6 +1,11 @@
 {
     "quickCommandButtons.buttons": [
         {
+            "name": "$(robot) Claude",
+            "command": "claude",
+            "color": "#FFD700"
+        },
+        {
             "name": "$(play) Run Index",
             "command": ".venv/bin/python index.py",
             "color": "#4ec9b0"
