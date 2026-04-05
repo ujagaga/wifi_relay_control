@@ -84,7 +84,14 @@
 <form method="post" action="{{ url_for('manage_devices_post') }}">
   <div class="device_row">
     <div class="device_card device_config {% if single_device_mode and device.name != 'main' %}disabled{% endif %}">
-      <h3>{{ device.name }}</h3>
+      <h3>
+        {{ device.name }}
+        {% if device.command and device.command.update_at and device.command.firmware_id %}
+        <span title="Firmware update pending" style="color:#e6a817;font-size:0.75em;vertical-align:middle;margin-left:0.4em;">
+          <i class="fa-solid fa-microchip"></i>
+        </span>
+        {% endif %}
+      </h3>
 
       {% if device.ping_at %}
       <p><strong>Last Ping:</strong>

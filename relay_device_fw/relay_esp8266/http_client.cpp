@@ -46,11 +46,13 @@ void reportDeviceRequest() {
           } else if (strcmp(cmd, "update") == 0) {
             const char *fw_path = doc["firmware"];
             if (fw_path && strlen(fw_path) > 0) {
-              String fwUrl = String("http://") + REPORT_URL + String(fw_path);
+              String fwUrl = String("https://") + REPORT_URL + String(fw_path);
+              http.end();
               Serial.println("Starting OTA update from: " + fwUrl);
 
-              WiFiClient
-                  updateClient; // must be a named variable, not temporary
+              WiFiClientSecure updateClient;
+              updateClient.setInsecure();
+              updateClient.setBufferSizes(512, 512);
               t_httpUpdate_return ret =
                   ESPhttpUpdate.update(updateClient, fwUrl);
 

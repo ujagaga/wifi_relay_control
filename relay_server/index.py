@@ -384,7 +384,7 @@ def device_report():
         firmware_id = dev_command.get("firmware_id")
 
         if update_at and firmware_id:
-            if 0 <= current_timestamp - int(update_at) < settings.LIFESIGN_TIMEOUT:
+            if 0 <= current_timestamp - int(update_at) < (settings.LIFESIGN_TIMEOUT * 2):
                 response = json.dumps({
                     "command": "update",
                     "firmware": f"/firmware/{firmware_id}",

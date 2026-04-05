@@ -1,6 +1,13 @@
 {
     "quickCommandButtons.buttons": [
         {
+            "color": "#2196F3",
+            "command": "claude",
+            "insertOnly": false,
+            "name": "$(robot) Claude",
+            "useVsCodeApi": false
+        },
+        {
             "color": "#8BC34A",
             "command": "./tools/build.sh",
             "insertOnly": false,
