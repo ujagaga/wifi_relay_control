@@ -7,6 +7,7 @@
 #include "mqtt.h"
 #include "config.h"
 #include "pinctrl.h"
+#include "wifi_connection.h"
 #include <ArduinoJson.h>
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
@@ -26,7 +27,7 @@ static void callback(char *topic, byte *payload, unsigned int length) {
   for (int i = 0; i < length; i++) {
     textMsg[i] = (char)payload[i];
   }
-  Serial.print("RX:");
+  Serial.print("MQTT RX:");
   Serial.println(textMsg);
 
   StaticJsonDocument<128> doc;
@@ -50,6 +51,8 @@ static void mqtt_connect() {
 
   mqttclient.setServer(MQTT_URL, MQTT_PORT);
   mqttclient.setCallback(callback);
+  char *clientName = WIFIC_getDeviceName();
+
   // Attempt to connect
   if (mqttclient.connect(clientName, MQTT_USER, MQTT_PASS)) {
     String topic = String(MQTT_TOPIC_CMD) + clientName;
@@ -61,13 +64,6 @@ static void mqtt_connect() {
     Serial.print("ERROR:");
     Serial.println(mqttclient.state());
   }
-}
-
-void MQTT_init() {
-  macAddr = WiFi.macAddress();
-  macAddr.replace(":", "");
-  macAddr.toCharArray(clientName, sizeof(clientName));
-  Serial.println("MQTT client name:" + macAddr);
 }
 
 void MQTT_process() {

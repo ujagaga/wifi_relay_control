@@ -455,8 +455,7 @@ def unlock():
                 # Send command to device via mqtt
                 mqtt_command = json.dumps({
                     "relay_id": relay_id,
-                    "command": "unlock",
-                    "time": current_timestamp
+                    "command": "unlock"
                 })
 
                 helper.mqtt_publish(mqtt_command, device["name"])

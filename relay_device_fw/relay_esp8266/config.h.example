@@ -1,20 +1,23 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+// Comment the following if you intend to only use http communication.
+#define USE_MQTT
 #define PASSWORD "abc121212"
 
-#define AP_MODE_TIMEOUT_S                                                      \
-  30 // After this period since startup, try to connect as wifi client. This is
-     // to make sure router lease is updated.
+// After this period since startup, try to connect as wifi client. This is
+// to make sure it is not too frequent after a reset, so the router lease is
+// updated.
+#define AP_MODE_TIMEOUT_S 30
 #define TRIGGER_TIMEOUT 1000
-#define RELAY_1_PIN                                                            \
-  5 // Pin 16 is default and active on boot and triggeres a relay for about a
-    // second. Use pin 5 to avoid this.
+
+// Pin 16 is default and active on boot and triggeres a relay for about a
+// second. Use pin 5 to avoid this.
+#define RELAY_1_PIN 5
 #define RELAY_2_PIN 14
 #define RELAY_3_PIN 12
 #define RELAY_4_PIN 13
 
-#define UPDATE_TIMEOUT (30 * 1000ul)
 #define REPORT_URL "your_server_url" // E.G. "mywebsite.com" without https://
 
 #define AP_NAME_PREFIX "Gate_sw_" // Will be appended by device MAC
@@ -24,6 +27,12 @@
 #define SSID_EEPROM_ADDR (WIFI_PASS_EEPROM_ADDR + WIFI_PASS_SIZE)
 #define SSID_SIZE (32)
 #define EEPROM_SIZE (WIFI_PASS_SIZE + SSID_SIZE)
+
+#ifdef USE_MQTT
+#define UPDATE_TIMEOUT (30 * 1000ul)
+#else
+#define UPDATE_TIMEOUT (1000ul)
+#endif
 
 // NOTE: If you host your relay_server on a dedicated hosting plan, most hosting
 // providers will allow outbound traffic on ports 80, 433 and above 49000. I had

@@ -32,7 +32,6 @@ void setup(void) {
   WIFIC_init();
   WS_init();
   HTTP_SERVER_init();
-  MQTT_init();
 }
 
 void loop(void) {
@@ -41,7 +40,9 @@ void loop(void) {
     WS_process();
   } else {
     HTTP_CLIENT_process();
+#ifdef USE_MQTT
     MQTT_process();
+#endif
   }
 
   WIFIC_process();
