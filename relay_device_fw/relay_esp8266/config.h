@@ -30,6 +30,6 @@
 #define MQTT_PASS "Dv@5es1ra"
 #define MQTT_USER "ujagaga"
 #define APP_NAME "VM120_Gate_Server"
-#define MQTT_TOPIC_CMD APP_NAME "/command"
+#define MQTT_TOPIC_CMD APP_NAME "/command/" // will be appended by device MAC
 
 #endif

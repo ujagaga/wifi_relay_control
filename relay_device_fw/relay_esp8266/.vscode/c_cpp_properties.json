@@ -5,6 +5,7 @@
       "includePath": [
         "${workspaceFolder}/**",
         "/home/rada/Arduino/libraries/**",
+        "/home/rada/Documents/Arduino/libraries/**",
         "/home/rada/.arduino15/packages/esp8266/hardware/esp8266/3.1.2/cores/esp8266",
         "/home/rada/.arduino15/packages/esp8266/hardware/esp8266/3.1.2/libraries/**",
         "/home/rada/.arduino15/packages/esp8266/hardware/esp8266/3.1.2/variants/generic",

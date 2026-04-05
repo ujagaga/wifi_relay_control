@@ -13,6 +13,13 @@
             "insertOnly": false,
             "name": "🔌 Upload",
             "useVsCodeApi": false
+        },
+        {
+            "color": "#8BC34A",
+            "command": "stty -F /dev/ttyUSB0 115200 raw && cat /dev/ttyUSB0",
+            "insertOnly": false,
+            "name": "🔌 ttyUSB0@115200",
+            "useVsCodeApi": false
         }
     ]
 }

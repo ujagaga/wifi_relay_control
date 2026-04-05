@@ -26,12 +26,14 @@ static void callback(char *topic, byte *payload, unsigned int length) {
   for (int i = 0; i < length; i++) {
     textMsg[i] = (char)payload[i];
   }
+  Serial.print("RX:");
+  Serial.println(textMsg);
 
   StaticJsonDocument<128> doc;
   DeserializationError error = deserializeJson(doc, textMsg);
 
   if (!error) {
-    const char* cmd = doc["command"];
+    const char *cmd = doc["command"];
     if (cmd) {
       if (strcmp(cmd, "unlock") == 0) {
         int relay_id = doc["relay_id"] | 0;
@@ -49,9 +51,10 @@ static void mqtt_connect() {
   mqttclient.setServer(MQTT_URL, MQTT_PORT);
   mqttclient.setCallback(callback);
   // Attempt to connect
-  if (mqttclient.connect(clientName)) {
-    Serial.println("connected");
-    mqttclient.subscribe(clientName);
+  if (mqttclient.connect(clientName, MQTT_USER, MQTT_PASS)) {
+    String topic = String(MQTT_TOPIC_CMD) + clientName;
+    Serial.println("MQTT connected. Subscribing to: " + topic);
+    mqttclient.subscribe(topic.c_str());
   } else {
     Serial.print("MQTT failed. Server IP:");
     Serial.println(MQTT_URL);
@@ -65,7 +68,6 @@ void MQTT_init() {
   macAddr.replace(":", "");
   macAddr.toCharArray(clientName, sizeof(clientName));
   Serial.println("MQTT client name:" + macAddr);
-  mqtt_connect();
 }
 
 void MQTT_process() {

@@ -3,6 +3,5 @@
 
 extern void MQTT_init(void);
 extern void MQTT_process(void);
-extern void MQTT_setCurrentStatus(void);
 
 #endif
