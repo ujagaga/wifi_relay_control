@@ -72,7 +72,7 @@ void reportDeviceRequest() {
   if (httpCode > 0) {
     String response = http.getString();
     response.trim();
-    Serial.print("RX:");
+    Serial.print("HTTP RX:");
     Serial.println(response);
 
     if (response.startsWith("{")) {
@@ -81,8 +81,10 @@ void reportDeviceRequest() {
         const char* cmd = doc["command"];
         if (cmd) {
           if (strcmp(cmd, "unlock") == 0) {
+#ifndef USE_MQTT
             int relay_id = doc["relay_id"] | 0;
             PINCTRL_trigger(relay_id);
+#endif
           } else if (strcmp(cmd, "update") == 0) {
             const char* fw_path = doc["firmware"];
             if (fw_path && strlen(fw_path) > 0) {
@@ -90,8 +92,10 @@ void reportDeviceRequest() {
               performOtaUpdate(fwUrl);
             }
           } else if (strcmp(cmd, "restart") == 0) {
+#ifndef USE_MQTT
             Serial.println("Restart command received.");
             ESP.restart();
+#endif
           }
         }
       }

@@ -12,6 +12,7 @@
 #include "config.h"
 
 static char myApName[32] = {0};    /* Array to form AP name based on read MAC */
+static char deviceName[32] = {0}; /* MAC address without colons, used as device identifier */
 static char st_ssid[SSID_SIZE] = {0};    /* SSID to connect to */
 static char st_pass[WIFI_PASS_SIZE];    /* Password for the requested SSID */
 static unsigned long connectionTimeoutCheck = 0;
@@ -36,7 +37,7 @@ static bool checkValidIp(IPAddress IP){
 }
 
 char* WIFIC_getDeviceName(void){
-  return myApName;
+  return deviceName;
 }
 
 IPAddress WIFIC_getApIp(void){
@@ -70,8 +71,12 @@ void WIFIC_APMode(void){
   WiFi.mode(WIFI_AP);  
   WiFi.begin();
 
-  String ApName = AP_NAME_PREFIX + WiFi.macAddress();
-  ApName.toCharArray(myApName, ApName.length() + 1); 
+  String macAddr = WiFi.macAddress();
+  macAddr.replace(":", "");
+  macAddr.toCharArray(deviceName, sizeof(deviceName));
+
+  String ApName = AP_NAME_PREFIX + macAddr;
+  ApName.toCharArray(myApName, ApName.length() + 1);
 
   WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
   
