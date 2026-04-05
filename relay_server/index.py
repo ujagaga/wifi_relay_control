@@ -444,13 +444,22 @@ def unlock():
                 else:
                     relay_id = button_index
 
-                command = json.dumps({
+                db_command = json.dumps({
                     "unlocked_at": current_timestamp,
                     "relay_id": relay_id,
                     "dev_id": device["name"]
                 })
-                database.update_device(connection=g.db, name=device["name"], command=command)
-                helper.mqtt_publish(command, device["name"])
+                # Save command in the DB for devices not supporting mqtt
+                database.update_device(connection=g.db, name=device["name"], command=db_command)
+
+                # Send command to device via mqtt
+                mqtt_command = json.dumps({
+                    "relay_id": relay_id,
+                    "command": "unlock",
+                    "time": current_timestamp
+                })
+
+                helper.mqtt_publish(mqtt_command, device["name"])
                 dev_found = True
 
         if dev_found:
