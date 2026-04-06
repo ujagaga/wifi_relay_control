@@ -2,7 +2,7 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   margin-bottom: 1.5em;
   border: 1px solid #ddd;
   border-radius: 8px;
