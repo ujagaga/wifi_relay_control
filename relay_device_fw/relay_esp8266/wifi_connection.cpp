@@ -121,7 +121,6 @@ void WIFIC_stationMode(void) {
 
     Serial.printf("IP address: %s, gateway: %s \n",
                   stationIP.toString().c_str(), gateway.toString().c_str());
-    apMode = false;
   } else {
     WIFIC_APMode();
   }
@@ -193,39 +192,38 @@ void WIFIC_init(void) {
 }
 
 void WIFIC_process(void) {
-  static unsigned long lastScanTime = 0;
-  const unsigned long scanInterval = 5000; // 5 seconds
+  static unsigned long lastCheckTime = 0;
+  const unsigned long checkInterval = 5000; // 5 seconds
 
-  if (apMode) {
-    unsigned long now = millis();
+  if (!apMode) {
+    return;
+  }
 
-    // If timeout expired or we’re ready for a retry
-    if ((now - apModeAttempTime) > (AP_MODE_TIMEOUT_S * 1000) &&
-        (now - lastScanTime) > scanInterval) {
+  unsigned long now = millis();
 
-      // Reset periodic scan timer
-      lastScanTime = now;
+  // Don't attempt a STA connection until AP_MODE_TIMEOUT_S has passed since
+  // startup/reset, so the router lease is not renewed too frequently.
+  if ((now - apModeAttempTime) < (AP_MODE_TIMEOUT_S * 1000)) {
+    return;
+  }
 
-      if (wifi_softap_get_station_num() > 0) {
-        Serial.println("Clients connected — AP mode continues.");
-        return;
-      }
+  if ((now - lastCheckTime) < checkInterval) {
+    return;
+  }
+  lastCheckTime = now;
 
-      Serial.println("No clients — scanning for known SSID...");
+  if (WiFi.status() != WL_CONNECTED) {
+    // Not connected yet: try now. This keeps the AP running, so we end up
+    // in AP+STA mode.
+    WIFIC_stationMode();
+    return;
+  }
 
-      String ssidString = String(st_ssid);
-      String apList = WIFIC_getApList();
-      Serial.println(apList);
-
-      if (apList.indexOf(ssidString) != -1) {
-        apModeAttempTime = now; // reset main AP timeout
-        Serial.printf("Found saved SSID '%s', switching to STA mode...\n",
-                      ssidString.c_str());
-        WIFIC_stationMode();
-      } else {
-        Serial.printf("Saved SSID '%s' not found, will retry in 5 seconds.\n",
-                      ssidString.c_str());
-      }
-    }
+  // Already connected in AP+STA mode: drop to STA only once no client is
+  // using the device's AP any more.
+  if (wifi_softap_get_station_num() == 0) {
+    Serial.println("No AP clients — switching to STA only.");
+    WiFi.mode(WIFI_STA);
+    apMode = false;
   }
 }

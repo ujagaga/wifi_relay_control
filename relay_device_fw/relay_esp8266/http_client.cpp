@@ -28,6 +28,7 @@ void reportDeviceRequest() {
   int httpCode = http.GET();
 
   if (httpCode > 0) {
+    fail_count = 0;
     String response = http.getString();
     response.trim();
     Serial.print("HTTP RX:");
@@ -82,6 +83,11 @@ void reportDeviceRequest() {
   } else {
     Serial.printf("HTTP GET failed, error: %s\n",
                   http.errorToString(httpCode).c_str());
+    fail_count++;
+    if (fail_count >= 2) {
+      Serial.println("2 failed reports in a row, restarting.");
+      ESP.restart();
+    }
   }
 
   http.end();
