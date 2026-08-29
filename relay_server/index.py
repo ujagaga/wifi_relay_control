@@ -621,12 +621,6 @@ def manage_devices():
     authorized_devices = database.get_device(g.db, authorized=1)
     unauthorized_devices = database.get_device(g.db, authorized=0)
 
-    # Sort: "main" first, then the rest
-    authorized_devices = sorted(
-        authorized_devices,
-        key=lambda d: 0 if d['name'] == 'main' else 1
-    )
-
     # Collect firmware files to display
     firmware_files = []
     if os.path.exists(UPLOAD_FOLDER):
@@ -670,6 +664,7 @@ def manage_devices_post():
         label = request.form.get(f'{name}_label')
         sw_count = request.form.get(f'{name}_sw_count')
         reset_at = request.form.get(f'{name}_reset_at')
+        priority = request.form.get(f'{name}_priority')
 
         try:
             sw_count = int(sw_count)
@@ -680,6 +675,11 @@ def manage_devices_post():
             reset_at = int(reset_at)
         except ValueError:
             reset_at = settings.RESET_DEVS_AT
+
+        try:
+            priority = int(priority)
+        except (TypeError, ValueError):
+            priority = 0
 
         buttons = []
         for i in range(1, sw_count + 1):
@@ -697,7 +697,12 @@ def manage_devices_post():
             "buttons": buttons
         }
 
-        database.update_device(connection=g.db, name=name, data=dev_data)
+        database.update_device(
+            connection=g.db,
+            name=name,
+            data=dev_data,
+            priority=priority
+        )
         flash(f"Device '{name}' updated!")
 
     database.sync_temp_db_to_disk(connection=g.db)
@@ -801,5 +806,4 @@ def download_firmware(filename):
 if __name__ == "__main__":
     database.setup_initial_db()
     application.run(debug=False, host="0.0.0.0", port=5000)
-
 
