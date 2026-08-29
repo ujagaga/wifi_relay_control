@@ -104,6 +104,10 @@
       <label for="{{ device.name }}_label">Label:</label>
       <input type="text" name="{{ device.name }}_label" id="{{ device.name }}_label" value="{{ device.data.label }}">
 
+      <label for="{{ device.name }}_priority">Priority:</label>
+      <input type="number" name="{{ device.name }}_priority" id="{{ device.name }}_priority"
+        value="{{ device.priority or 0 }}" step="1" required>
+
       <label for="{{ device.name }}_reset_at">Restart At (hour 0–23):</label>
       <input type="number" name="{{ device.name }}_reset_at" id="{{ device.name }}_reset_at"
         value="{{ device.data.reset_at }}" min="0" max="23" step="1">

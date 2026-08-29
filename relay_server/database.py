@@ -56,6 +56,7 @@ def init_database(connection):
             ping_at TEXT,
             data TEXT,
             authorized INTEGER DEFAULT 0,
+            priority INTEGER NOT NULL DEFAULT 0,
             command TEXT,
             restarted_at TEXT
         );
@@ -73,6 +74,15 @@ def open_db(db_path=temp_db):
             shutil.copy2(persist_db, temp_db)
     connection = sqlite3.connect(db_path)
     connection.row_factory = sqlite3.Row
+    if check_table_exists(connection, "devices"):
+        columns = {
+            row["name"] for row in connection.execute("PRAGMA table_info(devices);")
+        }
+        if "priority" not in columns:
+            connection.execute(
+                "ALTER TABLE devices ADD COLUMN priority INTEGER NOT NULL DEFAULT 0;"
+            )
+            connection.commit()
     return connection
 
 
@@ -211,11 +221,14 @@ def get_device(connection, name: str = None, authorized: int = None):
         sql = "SELECT * FROM devices WHERE name = ?;"
         params = (name,)
     elif authorized is not None:
-        sql = "SELECT * FROM devices WHERE authorized = ?;"
+        sql = """
+            SELECT * FROM devices WHERE authorized = ?
+            ORDER BY priority DESC, name COLLATE NOCASE ASC;
+        """
         params = (authorized,)
         one = False
     else:
-        sql = "SELECT * FROM devices;"
+        sql = "SELECT * FROM devices ORDER BY priority DESC, name COLLATE NOCASE ASC;"
         params = ()
         one = False
 
@@ -280,6 +293,7 @@ def update_device(
     connection, name: str,
     ping_at: int = None,
     authorized: int = None,
+    priority: int = None,
     restarted_at: int = None,
     command = None,
     data = None
@@ -293,6 +307,8 @@ def update_device(
             device["restarted_at"] = helper.epoch_to_iso(restarted_at)
         if authorized is not None:
             device["authorized"] = authorized
+        if priority is not None:
+            device["priority"] = priority
         if data is not None:
             device["data"] = data
         if command is not None:
@@ -305,13 +321,14 @@ def update_device(
 
         sql = """
         UPDATE devices
-        SET ping_at = ?, restarted_at = ?, authorized = ?, data = ?, command = ?
+        SET ping_at = ?, restarted_at = ?, authorized = ?, priority = ?, data = ?, command = ?
         WHERE name = ?;
         """
         params = (
             device.get("ping_at"),
             device.get("restarted_at"),
             device.get("authorized"),
+            device.get("priority", 0),
             device.get("data"),
             device.get("command"),
             name
