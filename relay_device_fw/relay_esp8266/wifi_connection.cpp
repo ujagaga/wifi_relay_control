@@ -6,9 +6,6 @@
  */
 #include <ESP8266WiFi.h>
 #include <ESP_EEPROM.h>
-#include <lwip/init.h>
-#include <lwip/dns.h>
-#include <lwip/ip_addr.h>
 #include "config.h"
 
 static char myApName[32] = {0};    /* Array to form AP name based on read MAC */
@@ -19,7 +16,6 @@ static IPAddress stationIP;
 static IPAddress apIP(192, 168, 1, 1);
 static bool apMode = false;
 static uint32_t apModeAttempTime = 0;
-static IPAddress dns(8,8,8,8);
 
 char* WIFIC_getDeviceName(void){
   return myApName;
@@ -75,6 +71,8 @@ void WIFIC_APMode(void){
 bool WIFIC_stationMode(void){
   Serial.printf("\n\nTrying STA mode with [%s] and [%s]\r\n", st_ssid, st_pass);
   
+  WiFi.persistent(false);
+  WiFi.setAutoReconnect(true);
   WiFi.mode(WIFI_STA);
   WiFi.config(0U, 0U, 0U);  // This disables static config.
   WiFi.begin(st_ssid, st_pass); 
@@ -107,12 +105,20 @@ bool WIFIC_stationMode(void){
   if(WiFi.status() == WL_CONNECTED){
     stationIP = WiFi.localIP();
     IPAddress gateway = WiFi.gatewayIP();
-    // force dns server
-    ip_addr_t dnsserver;
-    IP4_ADDR(&dnsserver, dns[0], dns[1], dns[2], dns[3]);
-    dns_setserver(0, &dnsserver);
+    IPAddress primaryDns = WiFi.dnsIP(0);
+    IPAddress secondaryDns = WiFi.dnsIP(1);
 
-    Serial.printf("IP address: %s, gateway: %s \n", stationIP.toString().c_str(), gateway.toString().c_str());
+    Serial.printf("IP address: %s, gateway: %s, DNS: %s, %s\n",
+                  stationIP.toString().c_str(), gateway.toString().c_str(),
+                  primaryDns.toString().c_str(), secondaryDns.toString().c_str());
+
+    IPAddress endpointIP;
+    if (WiFi.hostByName(REPORT_URL, endpointIP, 5000) == 1) {
+      Serial.printf("Resolved %s to %s\n", REPORT_URL, endpointIP.toString().c_str());
+    } else {
+      Serial.printf("DNS lookup failed for %s; will retry with the next request.\n", REPORT_URL);
+    }
+
     apMode = false;    
     return true;
   }else{    
@@ -194,7 +200,19 @@ void WIFIC_init(void){
 
 void WIFIC_process(void) {
   static unsigned long lastScanTime = 0;
+  static unsigned long lastReconnectAttempt = 0;
   const unsigned long scanInterval = 5000; // 5 seconds
+  const unsigned long reconnectInterval = 10000; // 10 seconds
+
+  if (!apMode && WiFi.status() != WL_CONNECTED) {
+    unsigned long now = millis();
+    if ((now - lastReconnectAttempt) > reconnectInterval) {
+      lastReconnectAttempt = now;
+      Serial.println("WiFi connection lost, reconnecting...");
+      WIFIC_stationMode();
+    }
+    return;
+  }
 
   if (apMode) {
     unsigned long now = millis();
