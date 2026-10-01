@@ -203,8 +203,8 @@ static void saveWiFi(void){
   String ssid = webServer->arg("s");
   String pass = webServer->arg("p");
   
-  if((ssid.length() > 63) || (pass.length() > 63)){
-      MAIN_setStatusMsg("Sorry, this module can only remember SSID and a PASSWORD up to 63 bytes long.");
+  if((ssid.length() >= SSID_SIZE) || (pass.length() >= WIFI_PASS_SIZE)){
+      MAIN_setStatusMsg("Sorry, this module can only remember SSID up to 32 and a PASSWORD up to 63 bytes long.");
       showRedirectPage(); 
       return;
   } 

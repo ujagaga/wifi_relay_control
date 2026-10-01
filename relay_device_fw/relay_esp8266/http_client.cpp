@@ -69,6 +69,10 @@ void reportDeviceRequest() {
     }
   } else {
     Serial.printf("HTTP GET failed, error: %s\n", http.errorToString(httpCode).c_str());
+    IPAddress endpointIP;
+    if (WiFi.hostByName(REPORT_URL, endpointIP, 5000) != 1) {
+      WIFIC_useFallbackDns();
+    }
   }
 
   http.end();

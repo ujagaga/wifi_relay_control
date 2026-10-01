@@ -25,7 +25,7 @@ void PINCTRL_trigger(int id)
     return;
   }
 
-  if((millis() - PinWriteTimestamp[id]) < TRIGGER_TIMEOUT){
+  if((millis() - PinWriteTimestamp[id]) < (TRIGGER_TIMEOUT_S * 1000)){
     return;
   }  
 

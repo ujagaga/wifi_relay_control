@@ -3,7 +3,8 @@
 
 #define PASSWORD                "abc121212"
 
-#define AP_MODE_TIMEOUT_S       300 // After this period since startup, try to connect as wifi client. This is to make sure router lease is updated.
+#define AP_MODE_TIMEOUT_S       120 // After this period since startup, try to connect as wifi client. This is to make sure router lease is updated.
+#define STA_CONNECT_TIMEOUT_S   30  // If STA does not connect within this period, fall back to AP only and retry after AP_MODE_TIMEOUT_S.
 #define TRIGGER_TIMEOUT_S       1   // Door unlock relay
 
 
@@ -19,9 +20,9 @@
 #define AP_NAME_PREFIX          "Shtef_sw_" // Will be appended by device MAC
 
 #define WIFI_PASS_EEPROM_ADDR   (0)
-#define WIFI_PASS_SIZE          (32)
+#define WIFI_PASS_SIZE          (64)  // WPA2 passphrase up to 63 chars + terminator
 #define SSID_EEPROM_ADDR        (WIFI_PASS_EEPROM_ADDR + WIFI_PASS_SIZE)
-#define SSID_SIZE               (32)
+#define SSID_SIZE               (33)  // SSID up to 32 chars + terminator
 #define EEPROM_SIZE             (WIFI_PASS_SIZE + SSID_SIZE)   
 
 #endif

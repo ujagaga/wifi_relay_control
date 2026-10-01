@@ -39,9 +39,8 @@ void loop(void) {
   if(WIFIC_isApMode()){
     HTTP_SERVER_process();
 WS_process();
-  }else{
-    HTTP_CLIENT_process();
-  }     
+  }
+  HTTP_CLIENT_process();  /* Returns early when STA is not connected. */
 
   WIFIC_process();
   PINCTRL_process();

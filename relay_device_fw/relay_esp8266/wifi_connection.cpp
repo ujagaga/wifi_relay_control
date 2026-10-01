@@ -6,16 +6,18 @@
  */
 #include <ESP8266WiFi.h>
 #include <ESP_EEPROM.h>
+#include <lwip/dns.h>
 #include "config.h"
 
 static char myApName[32] = {0};    /* Array to form AP name based on read MAC */
 static char st_ssid[SSID_SIZE] = {0};    /* SSID to connect to */
 static char st_pass[WIFI_PASS_SIZE];    /* Password for the requested SSID */
-static unsigned long connectionTimeoutCheck = 0;
 static IPAddress stationIP;
-static IPAddress apIP(192, 168, 1, 1);
+static IPAddress apIP(192, 168, 4, 1);
 static bool apMode = false;
 static uint32_t apModeAttempTime = 0;
+static bool staConnecting = false;
+static uint32_t staConnectStartTime = 0;
 
 char* WIFIC_getDeviceName(void){
   return myApName;
@@ -44,87 +46,71 @@ String WIFIC_getApList(void){
   return result;
 }
 
-/* Initiates a local AP */
-void WIFIC_APMode(void){ 
-  String wifi_statusMessage; 
-  Serial.println("\nStarting AP");  
-
-  WiFi.mode(WIFI_AP);  
-  WiFi.begin();
-
+static void startSoftAP(void){
   String ApName = AP_NAME_PREFIX + WiFi.macAddress();
   ApName.toCharArray(myApName, ApName.length() + 1); 
 
   WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
   
   if(WiFi.softAP(myApName, PASSWORD)){
-    wifi_statusMessage = "Running in AP mode. SSID: " + String(myApName) + ", IP:" + apIP.toString();  
+    Serial.println("AP running. SSID: " + String(myApName) + ", IP:" + apIP.toString());
     apMode = true;    
   }else{
-    wifi_statusMessage = "Failed to switch to AP mode.";
+    Serial.println("Failed to start AP.");
   }
-  Serial.println(wifi_statusMessage);
-  
+}
+
+/* Initiates a local AP only */
+void WIFIC_APMode(void){ 
+  Serial.println("\nStarting AP mode");  
+
+  WiFi.mode(WIFI_AP);  
+  startSoftAP();
+
+  staConnecting = false;
   apModeAttempTime = millis();
 }
 
-bool WIFIC_stationMode(void){
-  Serial.printf("\n\nTrying STA mode with [%s] and [%s]\r\n", st_ssid, st_pass);
+/* Keeps the AP running and starts a non blocking STA connection attempt. */
+void WIFIC_stationMode(void){
+  Serial.printf("\n\nTrying STA+AP mode with [%s] and [%s]\r\n", st_ssid, st_pass);
   
-  WiFi.persistent(false);
   WiFi.setAutoReconnect(true);
-  WiFi.mode(WIFI_STA);
+  WiFi.mode(WIFI_AP_STA);
+  startSoftAP();
   WiFi.config(0U, 0U, 0U);  // This disables static config.
   WiFi.begin(st_ssid, st_pass); 
 
-    /* set timeout to 30 seconds*/
-  int i = 30;    
-  while((i > 0) && (WiFi.status() != WL_CONNECTED)){
-    delay(1000);
-    ESP.wdtFeed();       
-    i--;
-    Serial.print(".");
-  } 
-  Serial.println();  
+  staConnecting = true;
+  staConnectStartTime = millis();
+}
 
-  if (WiFi.status() != WL_CONNECTED) {
-    Serial.println("Connection failed, trying DHCP renew...");
-    WiFi.disconnect(true); // ← clears old DHCP lease
-    delay(200);
-    WiFi.begin(st_ssid, st_pass);
+/* Replace DHCP provided DNS (e.g. an unreliable repeater) with public DNS servers. */
+void WIFIC_useFallbackDns(void){
+  IPAddress dns1(8, 8, 8, 8);
+  IPAddress dns2(1, 1, 1, 1);
+  dns_setserver(0, dns1);
+  dns_setserver(1, dns2);
+  Serial.println("Switched to fallback DNS 8.8.8.8, 1.1.1.1");
+}
 
-    int t = 10;
-    while(t-- > 0 && WiFi.status() != WL_CONNECTED) {
-        delay(1000);
-        ESP.wdtFeed();
-        Serial.print(".");
-    }
-    Serial.println();
+static void onStationConnected(void){
+  stationIP = WiFi.localIP();
+  IPAddress gateway = WiFi.gatewayIP();
+  IPAddress primaryDns = WiFi.dnsIP(0);
+  IPAddress secondaryDns = WiFi.dnsIP(1);
+
+  Serial.printf("IP address: %s, gateway: %s, DNS: %s, %s\n",
+                stationIP.toString().c_str(), gateway.toString().c_str(),
+                primaryDns.toString().c_str(), secondaryDns.toString().c_str());
+
+  IPAddress endpointIP;
+  if (WiFi.hostByName(REPORT_URL, endpointIP, 5000) == 1) {
+    Serial.printf("Resolved %s to %s\n", REPORT_URL, endpointIP.toString().c_str());
+  } else {
+    Serial.printf("DNS lookup failed for %s; using fallback DNS.\n", REPORT_URL);
+    WIFIC_useFallbackDns();
   }
-
-  if(WiFi.status() == WL_CONNECTED){
-    stationIP = WiFi.localIP();
-    IPAddress gateway = WiFi.gatewayIP();
-    IPAddress primaryDns = WiFi.dnsIP(0);
-    IPAddress secondaryDns = WiFi.dnsIP(1);
-
-    Serial.printf("IP address: %s, gateway: %s, DNS: %s, %s\n",
-                  stationIP.toString().c_str(), gateway.toString().c_str(),
-                  primaryDns.toString().c_str(), secondaryDns.toString().c_str());
-
-    IPAddress endpointIP;
-    if (WiFi.hostByName(REPORT_URL, endpointIP, 5000) == 1) {
-      Serial.printf("Resolved %s to %s\n", REPORT_URL, endpointIP.toString().c_str());
-    } else {
-      Serial.printf("DNS lookup failed for %s; will retry with the next request.\n", REPORT_URL);
-    }
-
-    apMode = false;    
-    return true;
-  }else{    
-    WIFIC_APMode();    
-  }    
-  return false;    
 }
 
 String WIFIC_getStSSID(void){
@@ -181,7 +167,7 @@ void WIFIC_init(void){
       break;
     }
     i++;
-  }while(i < WIFI_PASS_SIZE);
+  }while(i < (WIFI_PASS_SIZE - 1));
   st_pass[i] = 0;
 
   i = 0;
@@ -192,56 +178,43 @@ void WIFIC_init(void){
       break;
     }
     i++;
-  }while(i < SSID_SIZE);
+  }while(i < (SSID_SIZE - 1));
   st_ssid[i] = 0;
 
+  WiFi.persistent(false);   /* Do not use or overwrite credentials stored in SDK flash. */
   WIFIC_APMode();
 }
 
 void WIFIC_process(void) {
-  static unsigned long lastScanTime = 0;
-  static unsigned long lastReconnectAttempt = 0;
-  const unsigned long scanInterval = 5000; // 5 seconds
-  const unsigned long reconnectInterval = 10000; // 10 seconds
+  uint32_t now = millis();
 
-  if (!apMode && WiFi.status() != WL_CONNECTED) {
-    unsigned long now = millis();
-    if ((now - lastReconnectAttempt) > reconnectInterval) {
-      lastReconnectAttempt = now;
-      Serial.println("WiFi connection lost, reconnecting...");
-      WIFIC_stationMode();
+  if (staConnecting) {
+    if (WiFi.status() == WL_CONNECTED) {
+      staConnecting = false;
+      onStationConnected();
+    } else if ((now - staConnectStartTime) > (STA_CONNECT_TIMEOUT_S * 1000ul)) {
+      Serial.println("STA connection failed, falling back to AP only.");
+      WIFIC_APMode();
     }
     return;
   }
 
   if (apMode) {
-    unsigned long now = millis();
-
-    // If timeout expired or we’re ready for a retry
-    if ((now - apModeAttempTime) > (AP_MODE_TIMEOUT_S * 1000) && 
-        (now - lastScanTime) > scanInterval) {
-
-      // Reset periodic scan timer
-      lastScanTime = now;
-
-      if (wifi_softap_get_station_num() > 0) {
-        Serial.println("Clients connected — AP mode continues.");        
-        return;
+    if (WiFi.status() == WL_CONNECTED) {
+      /* STA+AP connected. Drop the AP once nobody uses it. */
+      if (wifi_softap_get_station_num() == 0) {
+        Serial.println("No AP clients, switching to STA mode only.");
+        WiFi.mode(WIFI_STA);
+        apMode = false;
       }
-
-      Serial.println("No clients — scanning for known SSID...");
-
-      String ssidString = String(st_ssid);
-      String apList = WIFIC_getApList();
-      Serial.println(apList);
-
-      if (apList.indexOf(ssidString) != -1) {
-        apModeAttempTime = now; // reset main AP timeout
-        Serial.printf("Found saved SSID '%s', switching to STA mode...\n", ssidString.c_str());
-        WIFIC_stationMode();
-      } else {
-        Serial.printf("Saved SSID '%s' not found, will retry in 5 seconds.\n", ssidString.c_str());
-      }
+    } else if ((strlen(st_ssid) > 0) && ((now - apModeAttempTime) > (AP_MODE_TIMEOUT_S * 1000ul))) {
+      WIFIC_stationMode();
     }
+    return;
+  }
+
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("WiFi connection lost, reconnecting in STA+AP mode...");
+    WIFIC_stationMode();
   }
 }
