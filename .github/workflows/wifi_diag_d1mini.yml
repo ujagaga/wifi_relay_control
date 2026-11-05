@@ -1,0 +1,47 @@
+# Builds the D1 mini diag firmware and publishes it to the rolling "diag-fw" release:
+# https://github.com/ujagaga/wifi_relay_control/releases/download/diag-fw/wifi_diag_d1mini.bin
+name: wifi_diag_d1mini
+
+on:
+  push:
+    branches: [shtef]
+    paths:
+      - 'relay_device_fw/wifi_diag_d1mini/*.ino'
+      - 'relay_device_fw/wifi_diag_d1mini/*.h'
+      - '.github/workflows/wifi_diag_d1mini.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: arduino/setup-arduino-cli@v2
+
+      - name: Install ESP8266 core and libraries
+        run: |
+          arduino-cli config init
+          arduino-cli config add board_manager.additional_urls https://arduino.esp8266.com/stable/package_esp8266com_index.json
+          arduino-cli core update-index
+          arduino-cli core install esp8266:esp8266@3.1.2
+          arduino-cli lib install ArduinoJson
+
+      - name: Build
+        run: |
+          arduino-cli compile --fqbn esp8266:esp8266:d1_mini \
+            --build-property "compiler.cpp.extra_flags=-DFW_VERSION=${{ github.run_number }}" \
+            --output-dir out relay_device_fw/wifi_diag_d1mini
+          cp out/wifi_diag_d1mini.ino.bin wifi_diag_d1mini.bin
+
+      - name: Publish to diag-fw release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view diag-fw >/dev/null 2>&1 || \
+            gh release create diag-fw --target ${{ github.sha }} --prerelease --title "WiFi diag D1 mini firmware" --notes "Rolling build"
+          gh release upload diag-fw wifi_diag_d1mini.bin --clobber
+          gh release edit diag-fw --notes "FW_VERSION ${{ github.run_number }} built from ${{ github.sha }}"
