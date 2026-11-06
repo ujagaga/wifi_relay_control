@@ -149,8 +149,13 @@ static bool dnsProbe(const char* host, IPAddress& ip) {
   return ok;
 }
 
-static void httpProbe(const String& url) {
-  WiFiClient client;
+/* detail: also log the Location header and start of the body, to tell our server's reply from a router block page. */
+static void httpProbe(const String& url, bool detail = false) {
+  bool https = url.startsWith("https://");
+  WiFiClient plain;
+  BearSSL::WiFiClientSecure tls;
+  tls.setInsecure();
+  WiFiClient& client = https ? tls : plain;
   HTTPClient http;
   http.setTimeout(HTTP_TIMEOUT_MS);
   uint32_t t = millis();
@@ -158,10 +163,23 @@ static void httpProbe(const String& url) {
     logf("HTTP %s -> bad url", url.c_str());
     return;
   }
+  const char* headers[] = {"Location"};
+  http.collectHeaders(headers, 1);
   int code = http.GET();
-  int len = (code > 0) ? http.getString().length() : 0;
+  String body = (code > 0) ? http.getString() : "";
   logf("HTTP %s -> %d %s, %d bytes, %lums", url.c_str(), code,
-       code > 0 ? "" : http.errorToString(code).c_str(), len, millis() - t);
+       code > 0 ? "" : http.errorToString(code).c_str(), body.length(), millis() - t);
+  if (detail && code > 0) {
+    body = body.substring(0, 100);
+    body.replace('\r', ' ');
+    body.replace('\n', ' ');
+    logf("  Location '%s', body '%s'", http.header("Location").c_str(), body.c_str());
+  }
+  if (https && code <= 0) {
+    char err[80];
+    int e = tls.getLastSSLError(err, sizeof(err));
+    logf("  TLS error %d: %s", e, err);
+  }
   http.end();
 }
 
@@ -189,7 +207,9 @@ static void runProbes() {
   if (dnsProbe(REPORT_HOST, reportIp)) {
     tcpProbe(REPORT_HOST ":80", reportIp, 80);
   }
-  httpProbe(String("http://") + REPORT_HOST + "/");
+  /* Same request the relay firmware makes, without "name" so the server does not register a device. */
+  httpProbe(String("http://") + REPORT_HOST + "/device_report", true);
+  httpProbe(String("https://") + REPORT_HOST + "/device_report", true);
   httpProbe("http://connectivitycheck.gstatic.com/generate_204");
   httpProbe(diagUrl("/diag/ping"));
   httpProbe(diagUrl("/diag/blob?size=8000"));   // Larger response, exposes MTU/fragmentation problems.

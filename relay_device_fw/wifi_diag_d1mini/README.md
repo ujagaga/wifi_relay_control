@@ -61,7 +61,7 @@ Optional fields for `test`:
 - `"apsta":true`: run the relay firmware's softAP (192.168.4.1) during the test, like the relay firmware in AP+STA mode does.
 - `"minutes":N`: stay connected and recheck every 15 s, for when access stops after a while.
 
-The checks: DHCP result, TCP to gateway:80/53, 1.1.1.1:80, 8.8.8.8:53; DNS and TCP for the diag server; DNS for `REPORT_HOST`; HTTP to `REPORT_HOST`, Google generate_204, diag ping, an 8 KB download; then DNS and HTTP again through 8.8.8.8/1.1.1.1.
+The checks: DHCP result, TCP to gateway:80/53, 1.1.1.1:80, 8.8.8.8:53; DNS and TCP for the diag server; DNS for `REPORT_HOST`; HTTP and HTTPS `/device_report` on `REPORT_HOST` (the relay firmware's request, without `name`; logs the `Location` header and the start of the body, so a router block page shows up; our server answers `400 Missing 'name' parameter`), Google generate_204, diag ping, an 8 KB download; then DNS and HTTP again through 8.8.8.8/1.1.1.1.
 
 ## Updating the firmware remotely
 
