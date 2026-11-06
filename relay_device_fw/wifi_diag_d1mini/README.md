@@ -16,6 +16,13 @@ arduino-cli upload --fqbn esp8266:esp8266:d1_mini -p /dev/ttyUSB0 --input-dir bu
 ```
 In the Arduino IDE, select the board "LOLIN(WEMOS) D1 R2 & mini". The only library you need is ArduinoJson.
 
+To ship the device with the client's home WiFi built in (no setup needed, just plug it in), create `secrets.h` next to `config.h`. It is gitignored, because the repo and the release binaries are public:
+```
+#define DEFAULT_HOME_SSID       "ClientHotspot"
+#define DEFAULT_HOME_PASS       "password"
+```
+A USB flash with new defaults writes them to EEPROM on first boot. After that, networks saved through the setup page and OTA builds from CI (which have no `secrets.h`) keep the stored credentials.
+
 ## Client setup
 
 1. Power the D1 mini from USB, either a PC or a phone charger.
@@ -30,7 +37,7 @@ Deploy `server/diag_server.py` on the Oracle instance. It only needs Python 3 an
 ```
 python3 diag_server.py 8090
 ```
-Port 8090 must be reachable from the internet, through both the OCI security list and iptables. The firmware connects to it by IP (`DIAG_HOST`/`DIAG_PORT` in `config.h`).
+It runs as the systemd service `wifi_diag` from `~/wifi_diag_server`. The OCI security list blocks 8090, so nginx proxies `http://debug.ujagaga.in.rs` (port 80) to `127.0.0.1:8090` (`/etc/nginx/sites-available/debug.ujagaga.in.rs.conf`). The firmware uses `DIAG_HOST`/`DIAG_PORT` from `config.h`.
 
 - `logs/<id>.seen` is updated on every poll: time, public IP, fw version, RSSI, local IP.
 - `logs/<id>.log` collects the uploaded logs.
@@ -54,7 +61,7 @@ Optional fields for `test`:
 - `"apsta":true`: run the relay firmware's softAP (192.168.4.1) during the test, like the relay firmware in AP+STA mode does.
 - `"minutes":N`: stay connected and recheck every 15 s, for when access stops after a while.
 
-The checks: DHCP result, TCP to gateway:80/53, 1.1.1.1:80, 8.8.8.8:53 and the diag server; DNS for `REPORT_HOST`; HTTP to `REPORT_HOST`, Google generate_204, diag ping, an 8 KB download; then DNS and HTTP again through 8.8.8.8/1.1.1.1.
+The checks: DHCP result, TCP to gateway:80/53, 1.1.1.1:80, 8.8.8.8:53; DNS and TCP for the diag server; DNS for `REPORT_HOST`; HTTP to `REPORT_HOST`, Google generate_204, diag ping, an 8 KB download; then DNS and HTTP again through 8.8.8.8/1.1.1.1.
 
 ## Updating the firmware remotely
 

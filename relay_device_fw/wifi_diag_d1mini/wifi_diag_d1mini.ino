@@ -18,11 +18,15 @@
 #include <ArduinoJson.h>
 #include <lwip/dns.h>
 #include "config.h"
+#if __has_include("secrets.h")
+#include "secrets.h"    /* Optional, not in git: DEFAULT_HOME_SSID / DEFAULT_HOME_PASS. */
+#endif
 
-#define CREDS_MAGIC   0xD1A60001
+#define CREDS_MAGIC   0xD1A60002
 
 struct Creds {
   uint32_t magic;
+  uint32_t defaultsHash;  /* Hash of the built-in defaults last written, so they are applied once per build. */
   char ssid[33];
   char pass[65];
 };
@@ -177,8 +181,9 @@ static void runProbes() {
   tcpProbe("1.1.1.1:80", IPAddress(1, 1, 1, 1), 80);
   tcpProbe("8.8.8.8:53", IPAddress(8, 8, 8, 8), 53);
   IPAddress diagIp;
-  diagIp.fromString(DIAG_HOST);
-  tcpProbe("diag server", diagIp, DIAG_PORT);
+  if (dnsProbe(DIAG_HOST, diagIp)) {
+    tcpProbe("diag server", diagIp, DIAG_PORT);
+  }
 
   IPAddress reportIp;
   if (dnsProbe(REPORT_HOST, reportIp)) {
@@ -328,6 +333,16 @@ static void poll() {
   handleCommand(body);
 }
 
+static void saveHome(const char* ssid, const char* pass, uint32_t defaultsHash) {
+  memset(&home, 0, sizeof(home));
+  home.magic = CREDS_MAGIC;
+  home.defaultsHash = defaultsHash;
+  strncpy(home.ssid, ssid, sizeof(home.ssid) - 1);
+  strncpy(home.pass, pass, sizeof(home.pass) - 1);
+  EEPROM.put(0, home);
+  EEPROM.commit();
+}
+
 static void startPortal() {
   /* Scan first, so the page can offer the visible networks. */
   int n = WiFi.scanNetworks();
@@ -351,12 +366,7 @@ static void startPortal() {
          "<input type='submit' value='Save'></form></body></html>";
 
   web.on("/save", HTTP_POST, []() {
-    memset(&home, 0, sizeof(home));
-    home.magic = CREDS_MAGIC;
-    strncpy(home.ssid, web.arg("ssid").c_str(), sizeof(home.ssid) - 1);
-    strncpy(home.pass, web.arg("pass").c_str(), sizeof(home.pass) - 1);
-    EEPROM.put(0, home);
-    EEPROM.commit();
+    saveHome(web.arg("ssid").c_str(), web.arg("pass").c_str(), home.defaultsHash);
     web.send(200, "text/plain", "Saved. Restarting and connecting to " + web.arg("ssid"));
     delay(500);
     ESP.restart();
@@ -391,6 +401,16 @@ void setup() {
 
   EEPROM.begin(sizeof(Creds));
   EEPROM.get(0, home);
+  if (home.magic != CREDS_MAGIC) memset(&home, 0, sizeof(home));
+#ifdef DEFAULT_HOME_SSID
+  /* FNV-1a of the defaults. A new USB build with other defaults applies them once; portal changes survive reboots. */
+  uint32_t h = 2166136261u;
+  for (const char* s = DEFAULT_HOME_SSID "\n" DEFAULT_HOME_PASS; *s; s++) h = (h ^ (uint8_t)*s) * 16777619u;
+  if (home.defaultsHash != h) {
+    saveHome(DEFAULT_HOME_SSID, DEFAULT_HOME_PASS, h);
+    logf("Home WiFi set to built-in default '%s'", DEFAULT_HOME_SSID);
+  }
+#endif
   if (home.magic != CREDS_MAGIC) {
     logf("No home WiFi configured");
     startPortal();

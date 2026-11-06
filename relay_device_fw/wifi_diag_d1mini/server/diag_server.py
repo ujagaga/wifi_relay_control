@@ -33,6 +33,9 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(data)
 
+    def client_ip(self):
+        return self.headers.get("X-Real-IP", self.client_address[0])  # Set by the nginx proxy.
+
     def device_id(self, query):
         dev_id = query.get("id", [""])[0]
         return dev_id if re.fullmatch(r"[A-Za-z0-9_]{1,40}", dev_id) else None
@@ -54,7 +57,7 @@ class Handler(BaseHTTPRequestHandler):
                 return self.reply("bad id", 400)
             info = " ".join(f"{k}={v[0]}" for k, v in query.items() if k != "id")
             with open(os.path.join(LOG_DIR, dev_id + ".seen"), "w") as f:
-                f.write(f"{now()} from {self.client_address[0]} {info}\n")
+                f.write(f"{now()} from {self.client_ip()} {info}\n")
 
             cmd_file = os.path.join(CMD_DIR, dev_id + ".json")
             if os.path.exists(cmd_file):
@@ -75,7 +78,7 @@ class Handler(BaseHTTPRequestHandler):
 
         body = self.rfile.read(int(self.headers.get("Content-Length", 0)))
         with open(os.path.join(LOG_DIR, dev_id + ".log"), "ab") as f:
-            f.write(f"----- received {now()} from {self.client_address[0]}\n".encode())
+            f.write(f"----- received {now()} from {self.client_ip()}\n".encode())
             f.write(body)
         print(f"{now()} log from {dev_id}: {len(body)} bytes", flush=True)
         self.reply("OK")

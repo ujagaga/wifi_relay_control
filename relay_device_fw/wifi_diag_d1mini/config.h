@@ -5,8 +5,8 @@
 #define FW_VERSION              0       // Set to the GitHub Actions run number by CI builds.
 #endif
 
-#define DIAG_HOST               "140.238.210.203"   // Temporary diag server on the Oracle instance (by IP, no DNS needed).
-#define DIAG_PORT               8090
+#define DIAG_HOST               "debug.ujagaga.in.rs"   // nginx on the Oracle instance, proxies to the diag server on 127.0.0.1:8090.
+#define DIAG_PORT               80
 #define REPORT_HOST             "shtef.radinaradionica.com"   // Same server the relay devices report to.
 
 #define PORTAL_PASS             "12345678"  // Password of the setup AP "WiFiDiag_XXXX".
