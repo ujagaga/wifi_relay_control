@@ -173,8 +173,8 @@ void WIFIC_init(void){
   i = 0;
   do{
     EEPROM.get(i + SSID_EEPROM_ADDR, st_ssid[i]);
-    if((st_ssid[i] < 32) || (st_ssid[i] > 126)){
-      /* Non printable character */
+    if(((uint8_t)st_ssid[i] < 32) || ((uint8_t)st_ssid[i] == 0xFF)){
+      /* Terminator, control character or erased EEPROM. Bytes above 126 are kept for UTF-8 SSIDs (e.g. "Zarić"). */
       break;
     }
     i++;
