@@ -60,6 +60,7 @@ Optional fields for `test`:
 - `"mac":"C4:D8:D5:34:D3:46"`: use a relay device's MAC, to test MAC filtering or blocking on the router. Don't do this while that device is connected to the same network.
 - `"apsta":true`: run the relay firmware's softAP (192.168.4.1) during the test, like the relay firmware in AP+STA mode does.
 - `"minutes":N`: stay connected and recheck every 15 s, for when access stops after a while.
+- `"get":["http://192.168.4.1/"]`: skip the internet checks and only fetch these URLs, logging the status, `Location` and the first 250 characters of the body. Use it to check a relay through its own softAP (`Shtef_sw_<MAC>`, password `abc121212`). The page title shows the firmware: "Shtef Gate" is ESP8266, "Zaric Gate" is ESP32.
 
 The checks: DHCP result, TCP to gateway:80/53, 1.1.1.1:80, 8.8.8.8:53; DNS and TCP for the diag server; DNS for `REPORT_HOST`; HTTP and HTTPS `/device_report` on `REPORT_HOST` (the relay firmware's request, without `name`; logs the `Location` header and the start of the body, so a router block page shows up; our server answers `400 Missing 'name' parameter`), Google generate_204, diag ping, an 8 KB download; then DNS and HTTP again through 8.8.8.8/1.1.1.1.
 

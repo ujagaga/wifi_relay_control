@@ -170,7 +170,7 @@ static void httpProbe(const String& url, bool detail = false) {
   logf("HTTP %s -> %d %s, %d bytes, %lums", url.c_str(), code,
        code > 0 ? "" : http.errorToString(code).c_str(), body.length(), millis() - t);
   if (detail && code > 0) {
-    body = body.substring(0, 100);
+    body = body.substring(0, 250);
     body.replace('\r', ' ');
     body.replace('\n', ' ');
     logf("  Location '%s', body '%s'", http.header("Location").c_str(), body.c_str());
@@ -279,8 +279,14 @@ static void runTest(JsonDocument& doc) {
     WiFi.softAP(RELAY_AP_NAME, RELAY_AP_PASS);
   }
   if (connectTo(ssid, pass, useBssid ? bssid : nullptr, useMac ? mac : staMac)) {
-    runProbes();
-    monitor(minutes);
+    JsonArray gets = doc["get"];
+    if (gets.isNull()) {
+      runProbes();
+      monitor(minutes);
+    } else {
+      /* Fetch only the given URLs, e.g. a relay's own page on its softAP, where the internet checks would just time out. */
+      for (const char* u : gets) httpProbe(u, true);
+    }
   }
   if (apsta) {
     WiFi.softAPdisconnect(true);
