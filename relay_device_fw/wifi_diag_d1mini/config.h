@@ -15,6 +15,10 @@
 #define RELAY_AP_NAME           "Shtef_diag"    // Used by "apsta" tests to mimic the relay firmware softAP.
 #define RELAY_AP_PASS           "abc121212"
 
+#define REPEATER_AP_IP          IPAddress(192, 168, 44, 1)
+#define NAPT_MAX                256     // NAT table entries for repeater mode.
+#define NAPT_PORT_MAX           32
+
 #define CONNECT_TIMEOUT_MS      30000
 #define POLL_INTERVAL_MS        5000
 #define MONITOR_INTERVAL_MS     15000

@@ -53,6 +53,7 @@ The device id is `D1DIAG_<MAC>` and is shown on the setup page and in the serial
 | `{"cmd":"probe"}` | Run the connectivity checks on the home network |
 | `{"cmd":"test","ssid":"Repeater","pass":"..."}` | Join the network, run the checks, return home, upload the log |
 | `{"cmd":"update","url":"https://github.com/ujagaga/wifi_relay_control/releases/download/diag-fw/wifi_diag_d1mini.bin"}` | OTA update over http or https; GitHub redirects are followed |
+| `{"cmd":"repeater","ssid":"Uplink","pass":"...","ap_ssid":"Zari","ap_pass":"...","minutes":60}` | Join the uplink and share it through our own AP (192.168.44.1, NAT) for `minutes` (default 60), then return home. Polling continues over the uplink, `sta=` in `.seen` shows connected AP clients. `reboot` stops it early |
 | `{"cmd":"reboot"}` | Restart |
 
 Optional fields for `test`:

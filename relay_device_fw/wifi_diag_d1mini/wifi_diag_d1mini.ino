@@ -17,6 +17,7 @@
 #include <EEPROM.h>
 #include <ArduinoJson.h>
 #include <lwip/dns.h>
+#include <lwip/napt.h>
 #include "config.h"
 #if __has_include("secrets.h")
 #include "secrets.h"    /* Optional, not in git: DEFAULT_HOME_SSID / DEFAULT_HOME_PASS. */
@@ -49,6 +50,15 @@ static volatile uint8_t discReason = 0;
 static volatile uint16_t assocCount = 0;
 static uint16_t loggedDisc = 0, loggedAssoc = 0;
 
+/* Repeater mode: share the uplink through our own AP with NAT, e.g. under the SSID the relays have stored. */
+static Creds uplink;
+static bool repeaterOn = false;
+static uint32_t repeaterStart = 0, repeaterMs = 0;
+static WiFiEventHandler apStaHandler;
+static volatile uint16_t apStaCount = 0;
+static uint8_t apStaMac[6];
+static uint16_t loggedApSta = 0;
+
 static void logf(const char* fmt, ...) {
   char line[300];
   va_list ap;
@@ -80,6 +90,11 @@ static void logWifiEvents() {
   if (discCount != loggedDisc) {
     logf("  disconnected, last reason %d (%u events)", discReason, (unsigned)(discCount - loggedDisc));
     loggedDisc = discCount;
+  }
+  if (apStaCount != loggedApSta) {
+    loggedApSta = apStaCount;
+    logf("  AP client joined %02X:%02X:%02X:%02X:%02X:%02X, %d connected", apStaMac[0], apStaMac[1], apStaMac[2],
+         apStaMac[3], apStaMac[4], apStaMac[5], WiFi.softAPgetStationNum());
   }
 }
 
@@ -314,6 +329,50 @@ static void doUpdate(const char* url) {
   logf("OTA failed, ret %d, error (%d): %s", ret, ESPhttpUpdate.getLastError(), ESPhttpUpdate.getLastErrorString().c_str());
 }
 
+static void startRepeater(JsonDocument& doc) {
+  const char* apSsid = doc["ap_ssid"] | "";
+  const char* apPass = doc["ap_pass"] | "";
+  uint32_t minutes = doc["minutes"] | 60;
+  memset(&uplink, 0, sizeof(uplink));
+  strncpy(uplink.ssid, doc["ssid"] | "", sizeof(uplink.ssid) - 1);
+  strncpy(uplink.pass, doc["pass"] | "", sizeof(uplink.pass) - 1);
+
+  if (!connectTo(uplink.ssid, uplink.pass, nullptr, staMac)) {
+    logf("Repeater: uplink failed, returning home");
+    connectHome();
+    return;
+  }
+  static bool naptReady = false;
+  if (!naptReady) {
+    err_t e = ip_napt_init(NAPT_MAX, NAPT_PORT_MAX);
+    if (e != ERR_OK) {
+      logf("Repeater: ip_napt_init failed %d, free heap %u", (int)e, ESP.getFreeHeap());
+      connectHome();
+      return;
+    }
+    naptReady = true;
+  }
+  WiFi.softAPDhcpServer().setDns(WiFi.dnsIP(0));  /* Clients get the uplink DNS instead of our AP address. */
+  WiFi.mode(WIFI_AP_STA);
+  WiFi.softAPConfig(REPEATER_AP_IP, REPEATER_AP_IP, IPAddress(255, 255, 255, 0));  /* Not 192.168.4.x, the relays use that. */
+  WiFi.softAP(apSsid, apPass);
+  err_t e = ip_napt_enable_no(SOFTAP_IF, 1);
+  logf("Repeater: uplink '%s', AP '%s' on %s ch %d, NAPT %s, %u min, free heap %u", uplink.ssid, apSsid,
+       WiFi.softAPIP().toString().c_str(), WiFi.channel(), e == ERR_OK ? "on" : "FAILED", minutes, ESP.getFreeHeap());
+  repeaterOn = true;
+  repeaterStart = millis();
+  repeaterMs = minutes * 60000ul;
+}
+
+static void stopRepeater() {
+  ip_napt_enable_no(SOFTAP_IF, 0);
+  WiFi.softAPdisconnect(true);
+  WiFi.mode(WIFI_STA);
+  repeaterOn = false;
+  logf("Repeater stopped, returning home");
+  if (!connectHome()) ESP.restart();
+}
+
 static void handleCommand(const String& body) {
   JsonDocument doc;
   if (deserializeJson(doc, body)) {
@@ -330,6 +389,8 @@ static void handleCommand(const String& body) {
     scanNetworks();
   } else if (strcmp(cmd, "probe") == 0) {
     runProbes();
+  } else if (strcmp(cmd, "repeater") == 0) {
+    startRepeater(doc);
   } else if (strcmp(cmd, "update") == 0) {
     doUpdate(doc["url"] | "");
   } else if (strcmp(cmd, "reboot") == 0) {
@@ -346,7 +407,7 @@ static void poll() {
   HTTPClient http;
   http.setTimeout(HTTP_TIMEOUT_MS);
   String url = diagUrl("/diag/poll?id=") + devId + "&fw=" + FW_VERSION + "&rssi=" + WiFi.RSSI() +
-               "&ip=" + WiFi.localIP().toString();
+               "&ip=" + WiFi.localIP().toString() + "&sta=" + WiFi.softAPgetStationNum();
   http.begin(client, url);
   int code = http.GET();
   String body = (code == 200) ? http.getString() : "";
@@ -422,6 +483,10 @@ void setup() {
   assocHandler = WiFi.onStationModeConnected([](const WiFiEventStationModeConnected& e) {
     assocCount++;
   });
+  apStaHandler = WiFi.onSoftAPModeStationConnected([](const WiFiEventSoftAPModeStationConnected& e) {
+    memcpy(apStaMac, e.mac, 6);
+    apStaCount++;
+  });
 
   logf("WiFi diag fw %d, id %s, reset reason: %s", FW_VERSION, devId.c_str(), ESP.getResetReason().c_str());
 
@@ -456,9 +521,17 @@ void loop() {
     return;
   }
 
+  logWifiEvents();
+  if (repeaterOn && millis() - repeaterStart > repeaterMs) stopRepeater();
+
   if (WiFi.status() != WL_CONNECTED) {
-    logf("Home WiFi lost");
-    if (!connectHome()) ESP.restart();
+    if (repeaterOn) {
+      logf("Repeater uplink lost");
+      if (!connectTo(uplink.ssid, uplink.pass, nullptr, staMac)) ESP.restart();
+    } else {
+      logf("Home WiFi lost");
+      if (!connectHome()) ESP.restart();
+    }
   }
 
   if (millis() - lastPoll > POLL_INTERVAL_MS) {
